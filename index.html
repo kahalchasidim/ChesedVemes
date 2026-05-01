@@ -134,7 +134,7 @@
     background: #000; overflow: hidden; position: relative;
   }
   .big-img-box img {
-    width: 100%; height: 100%; object-fit: cover;
+    width: 100%; height: 100%; object-fit: contain;
     position: absolute; top: 0; left: 0; transition: opacity 0.8s ease-in-out;
   }
   .right-col {
@@ -208,7 +208,7 @@
     <!-- Content: big image left, two text boxes right -->
     <div class="content-col">
       <div class="big-img-box">
-        <img id="p1" src="" alt="">
+        <img id="p4" src="" alt="">
       </div>
       <div class="right-col">
         <!-- Top text box: announcements -->
@@ -258,7 +258,7 @@ const $ = id => document.getElementById(id);
 // ── REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL ──────────────────
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRB79cFnLgC3umlsZXHTU9up4lhim2IBiSwlUagZ2zlNib_p4XBuhKjsyK747h0rrh6g/exec";
 
-var defaultSummerMsg = "", p1Images = [], p1Index = 0, shabbosPic = "";
+var defaultSummerMsg = "", p4Images = [], p4Index = 0, shabbosPic = "";
 var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
 var currentlyHighlightedId = null;
 var p1RotateTimer = null;
@@ -369,20 +369,34 @@ function isNineDays(hebDate) {
 function updateP1Image(isKodesh) {
     if (isKodesh && !isShabbosImageActive) {
         isShabbosImageActive = true;
-        if (p1RotateTimer) { clearInterval(p1RotateTimer); p1RotateTimer = null; }
-        if (shabbosPic) {
-            $('p1').style.opacity = 0;
-            setTimeout(() => { $('p1').src = "https://drive.google.com/thumbnail?id=" + shabbosPic + "&sz=w1200"; $('p1').style.opacity = 1; }, 800);
+
+        if (p1RotateTimer) {
+            clearInterval(p1RotateTimer);
+            p1RotateTimer = null;
         }
+
+        if (shabbosPic) {
+            $('p4').style.opacity = 0;
+
+            setTimeout(() => {
+                $('p4').src = "https://drive.google.com/thumbnail?id=" + shabbosPic + "&sz=w1600";
+                $('p4').style.opacity = 1;
+            }, 800);
+        }
+
     } else if (!isKodesh && isShabbosImageActive) {
         isShabbosImageActive = false;
-        if (p1Images.length > 0 && !p1RotateTimer) {
-            rotateP1();
-            p1RotateTimer = setInterval(rotateP1, 15000);
+
+        if (p4Images.length > 0) {
+            if (p1RotateTimer) {
+                clearInterval(p1RotateTimer);
+            }
+
+            rotateP4();
+            p1RotateTimer = setInterval(rotateP4, 15000);
         }
     }
 }
-
 // ── CLOCK ─────────────────────────────────────────────────────────
 function updateClock() {
     let now = new Date(), hh = (now.getHours() % 12 || 12);
@@ -398,13 +412,13 @@ function loadWeather() {
     .catch(err => console.log("Weather error:", err));
 }
 
-function rotateP1() {
-    if (p1Images.length === 0 || isShabbosImageActive) return;
-    $('p1').style.opacity = 0;
+function rotateP4() {
+    if (p4Images.length === 0 || isShabbosImageActive) return;
+    $('p4').style.opacity = 0;
     setTimeout(() => {
-        $('p1').src = "https://drive.google.com/thumbnail?id=" + p1Images[p1Index] + "&sz=w1200";
-        $('p1').style.opacity = 1;
-        p1Index = (p1Index + 1) % p1Images.length;
+        $('p4').src = "https://drive.google.com/thumbnail?id=" + p4Images[p4Index] + "&sz=w1200";
+        $('p4').style.opacity = 1;
+        p4Index = (p4Index + 1) % p4Images.length;
     }, 800);
 }
 
@@ -557,11 +571,11 @@ function loadData() {
         schedule         = d.schedule;
         defaultSummerMsg = d.defaultMsg || "";
         shabbosPic       = d.shabbosPic || "";
-        p1Images         = d.p1List || [];
-        if (p1Images.length > 0 && !isShabbosImageActive && !p1RotateTimer) {
-            rotateP1();
-            p1RotateTimer = setInterval(rotateP1, 15000);
-        }
+        p4Images = d.p4List || [];
+if (p4Images.length > 0 && !isShabbosImageActive && !p1RotateTimer) {
+    rotateP4();
+    p1RotateTimer = setInterval(rotateP4, 15000);
+}
         $('ANN').innerText = d.announcements || ""; fit($('ANN'), 4.8);
         moladList = [];
         if (d.moladList && Array.isArray(d.moladList)) {
