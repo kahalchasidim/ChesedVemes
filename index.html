@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>קהל חסד ואמת – Master Board</title>
-<!-- Version 1.0 – May 2026 | Based on Bayswater Protocol v2.8 -->
+<!-- Version 1.1 – May 2026 | Based on Bayswater Protocol v2.8 -->
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Suez+One&display=swap');
   :root { --gold: #c29d6d; }
@@ -96,7 +96,7 @@
   /* ── MAIN BODY ───────────────────────────────────────────────── */
   .main-body { height: 70vh; display: flex; gap: 10px; overflow: hidden; }
 
-  /* Zemanim column — no Rabbeinu Tam row */
+  /* Zemanim column — 12 rows total */
   .zemanim-col {
     width: 23vw; border: 2px solid var(--gold); border-radius: 10px;
     display: flex; flex-direction: column; padding: 2px;
@@ -118,14 +118,6 @@
   #row_special .z-time  { color: #ffffff !important; }
 
   /* ── CONTENT COLUMN ──────────────────────────────────────────── */
-  /*
-   * LAYOUT:
-   *   Left side: one large image box (full height)
-   *   Right side: stacked — top text box (ANN) + bottom Omer box
-   *
-   * Per request: "one box that takes a full page of 8.5×11, then
-   *   2 boxes to the right/left of that for text."
-   */
   .content-col {
     flex: 1; display: flex; flex-direction: row; gap: 10px; overflow: hidden;
   }
@@ -185,7 +177,7 @@
   </div>
 
   <div class="main-body">
-    <!-- Zemanim: 9 rows (no Rabbeinu Tam) -->
+    <!-- Zemanim: 12 rows (r1–r10 + candle + maariv + RT) -->
     <div class="zemanim-col" id="ZMANIM_LIST">
       <div class="z-row" id="r1"><span class="z-label">עלות השחר</span><span class="z-time" id="z1">--:--</span></div>
       <div class="z-row" id="r2"><span class="z-label">הנחת תפילין</span><span class="z-time" id="z2">--:--</span></div>
@@ -202,7 +194,10 @@
         <span class="z-time" id="z_spec_time">--:--</span>
       </div>
       <div class="z-row" id="r10"><span class="z-label">שקיעת החמה</span><span class="z-time" id="z10">--:--</span></div>
-      <!-- z11 = 60-min zman (no display row; used internally for flip + KL window) -->
+      <!-- NEW: מעריב = 51 min after sunset (Col T) -->
+      <div class="z-row" id="r11"><span class="z-label">מעריב</span><span class="z-time" id="z11">--:--</span></div>
+      <!-- NEW: רבינו תם = Col W -->
+      <div class="z-row" id="r12"><span class="z-label">רבינו תם</span><span class="z-time" id="z12">--:--</span></div>
     </div>
 
     <!-- Content: big image left, two text boxes right -->
@@ -225,11 +220,12 @@
 
 <script>
 /**
- * קהל חסד ואמת — Master Board  |  Version 1.0  |  May 2026
+ * קהל חסד ואמת — Master Board  |  Version 1.1  |  May 2026
  * Based on Bayswater Protocol v2.8 with the following changes:
  * ─────────────────────────────────────────────────────────────────────
  * RULE 1   CLOCK           12h format, ticking seconds.
- * RULE 2   MATH            Candle lighting = raw Col S. No Rabbeinu Tam.
+ * RULE 2   MATH            Candle lighting = raw Col S. No Rabbeinu Tam row previously —
+ *                          NOW ADDED: מעריב (Col T, 51 min after sunset) + רבינו תם (Col W).
  *                          60-min zman (z[10]) used for flip logic only — not displayed.
  * RULE 3   FLIP LOGIC      Date/Parsha flips at SUNSET (z10). Omer flips at sunset.
  * RULE 4   STATUS BOX      Priority: Shabbos > Yom Tov > Motzei Shabbos > Default.
@@ -246,7 +242,8 @@
  *                          Flip trigger: sunset (z10) on Friday / Col AA = "Y".
  *                          Resumes after sunset on Motzei Shabbos.
  * RULE 11  LAYOUT          One big image box (left), two text boxes stacked (right).
- *                          No Rabbeinu Tam row in zmanim column.
+ * RULE 12  NEW ZMANIM      מעריב = Col T (51 min after sunset). רבינו תם = Col W.
+ *                          Both included in active-zman highlight loop.
  * ─────────────────────────────────────────────────────────────────────
  * MOLED FORMAT (moled sheet Col A, no header):
  *   "DayName, Month DD, YYYY, H:MM am/pm and X chalakim"
@@ -312,6 +309,28 @@ function getSec(t, pm) {
     if (pm && h < 12) h += 12;
     return (h*3600) + (m*60) + s;
 }
+
+/**
+ * addMinutesToTimeStr
+ * Takes a time string like "7:34:12" (24h or 12h) and adds `mins` minutes.
+ * Returns a formatted 12h-style string "H:MM:SS" suitable for fmtZman().
+ * The `isPM` flag tells us if the base time is PM (same logic as getSec).
+ */
+function addMinutesToTimeStr(t, mins, isPM) {
+    if (!t || t.includes("--")) return "--:--";
+    let baseSec = getSec(t, isPM);
+    if (!baseSec) return "--:--";
+    let totalSec = baseSec + (mins * 60);
+    // Clamp to 24h just in case
+    totalSec = totalSec % 86400;
+    let hh = Math.floor(totalSec / 3600);
+    let mm = Math.floor((totalSec % 3600) / 60);
+    let ss = totalSec % 60;
+    // Convert back to 12h display
+    let h12 = hh % 12 || 12;
+    return `${h12}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+
 function getIso(d) {
     return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
 }
@@ -341,7 +360,6 @@ function parseMoladEntry(str) {
 }
 
 // ── KIDDUSH LEVANA (RULE 8) ───────────────────────────────────────
-// Window: 72h (3 days) to 360h (15 days) after molad
 function getKiddushLevana(now, hebDate, isShab, holidayText, dayOfWeek) {
     if (isShab) return false;
     if (holidayText && holidayText.trim() !== "") return false;
@@ -354,7 +372,6 @@ function getKiddushLevana(now, hebDate, isShab, holidayText, dayOfWeek) {
     }
     if (!bestMolad) return false;
     let hrs = (nowMs - bestMolad.getTime()) / 3600000;
-    // 72h = 3 days from molad (not 7 days / 168h like Bayswater)
     return (hrs >= 72 && hrs < 360);
 }
 function isNineDays(hebDate) {
@@ -369,34 +386,24 @@ function isNineDays(hebDate) {
 function updateP1Image(isKodesh) {
     if (isKodesh && !isShabbosImageActive) {
         isShabbosImageActive = true;
-
-        if (p1RotateTimer) {
-            clearInterval(p1RotateTimer);
-            p1RotateTimer = null;
-        }
-
+        if (p1RotateTimer) { clearInterval(p1RotateTimer); p1RotateTimer = null; }
         if (shabbosPic) {
             $('p4').style.opacity = 0;
-
             setTimeout(() => {
                 $('p4').src = "https://drive.google.com/thumbnail?id=" + shabbosPic + "&sz=w1600";
                 $('p4').style.opacity = 1;
             }, 800);
         }
-
     } else if (!isKodesh && isShabbosImageActive) {
         isShabbosImageActive = false;
-
-        if (p4Images.length > 0) {
-            if (p1RotateTimer) {
-                clearInterval(p1RotateTimer);
-            }
-
+        if (p4Images && p4Images.length > 0) {
+            if (p1RotateTimer) clearInterval(p1RotateTimer);
             rotateP4();
             p1RotateTimer = setInterval(rotateP4, 15000);
         }
     }
 }
+
 // ── CLOCK ─────────────────────────────────────────────────────────
 function updateClock() {
     let now = new Date(), hh = (now.getHours() % 12 || 12);
@@ -434,15 +441,13 @@ function updateUI() {
         return;
     } else { $('SLEEP_OVERLAY').style.display = 'none'; }
 
-    // RULE 3: FLIP LOGIC — date and omer both flip at SUNSET (z10 = שקיעת החמה)
-    // z[9] = index 9 = שקיעת החמה (10th zman, 0-indexed), always PM
-    let sunsetSecs = getSec(dToday.z[9], true); // z10 = index 9
+    // RULE 3: FLIP LOGIC — date and omer flip at SUNSET
+    // Apps Script z[] layout: z[0–8]=morning/afternoon, z[9]=Sunset(ColT), z[10]=מעריב(ColU), z[11]=רבינו תם(ColW)
+    let sunsetSecs = getSec(dToday.z[9], true);
 
     // Date flips at sunset: before sunset → use today; at/after sunset → use tomorrow
     let dIso = (cSec >= sunsetSecs) ? getIso(new Date(now.getTime() + 86400000)) : getIso(now);
-
-    // Omer also flips at sunset
-    let oIso = dIso;
+    let oIso = dIso; // Omer also flips at sunset
 
     let dOmer  = schedule[oIso] || dToday;
     let dDate  = schedule[dIso] || dToday;
@@ -452,11 +457,24 @@ function updateUI() {
         $('DAY_LABEL').innerText    = DAY_MAP[dDate.day] || dDate.day;
         $('DATE_LABEL').innerText   = dDate.heb;
         $('PARSHA_LABEL').innerText = dDate.parsha ? "פרשת " + dDate.parsha : "";
-        // Zmanim: 10 rows (r1–r10), z[0]–z[9]. No Rabbeinu Tam.
-        for (let i = 1; i <= 10; i++) {
-            let bt = dDate.z[i-1];
-            $('z'+i).innerHTML = fmtZman(bt);
+
+        // Apps Script z[] layout:
+        //   z[0]  עלות השחר       z[1]  הנחת תפילין    z[2]  נץ החמה
+        //   z[3]  סוף זק"ש מג"א   z[4]  סוף זק"ש גר"א  z[5]  סוף זמן תפילה
+        //   z[6]  חצות היום       z[7]  מנחה גדולה      z[8]  פלג המנחה
+        //   z[9]  שקיעה (Col T)   z[10] רבינו תם (Col W)
+        //   מעריב = z[9] + 51 min, calculated client-side (no sheet column)
+
+        // Display rows r1–r9: z[0]–z[8] (AM/afternoon zmanim)
+        for (let i = 1; i <= 9; i++) {
+            $('z'+i).innerHTML = fmtZman(dDate.z[i-1]);
         }
+        // r10 = שקיעת החמה → z[9]  (Col T)
+        $('z10').innerHTML = fmtZman(dDate.z[9]);
+        // r11 = מעריב → sunset (z[9]) + 51 minutes, calculated client-side
+        $('z11').innerHTML = fmtZman(addMinutesToTimeStr(dDate.z[9], 51, true));
+        // r12 = רבינו תם → z[10]  (Col W)
+        $('z12').innerHTML = fmtZman(dDate.z[10]);
     }
 
     // Candle lighting row
@@ -468,7 +486,7 @@ function updateUI() {
         $('row_special').style.display = 'none';
     }
 
-    // RULE 7: Omer box — "בעומר" (Ashkenaz, not לעומר)
+    // RULE 7: Omer box
     let moledText   = dDate.moled || "";
     let isMoledTime = (cSec >= 32400 && cSec <= 45000);
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
@@ -479,7 +497,6 @@ function updateUI() {
     } else if (holidayText !== "") {
         $('O2').innerText = holidayText; $('O_BECHINA').style.display = 'none'; fit($('O2'), 5.0);
     } else if (omerKey) {
-        // ASHKENAZ: בעומר not לעומר
         $('O2').innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
         if (dOmer.bechina) { $('O_BECHINA').innerText = dOmer.bechina; $('O_BECHINA').style.display = 'block'; }
         else { $('O_BECHINA').style.display = 'none'; }
@@ -489,20 +506,14 @@ function updateUI() {
     }
 
     // RULE 4: Status box
-    // NO tachanun. Ashkenaz default: no מוריד הטל.
     let hText  = (holidayText || "").trim();
     let dayW   = now.getDay();
-
-    // Candle lighting → seconds (force PM)
     let candleSecs = getSec(candleTime, false);
     if (candleSecs < 43200) candleSecs += 43200;
 
-    // FLIP AT SUNSET: Shabbos starts at sunset Friday (not candle lighting time).
-    // isShab: Friday after sunset, OR Saturday before sunset.
     let isShab   = (dayW === 5 && cSec >= sunsetSecs) || (dayW === 6 && cSec < sunsetSecs);
     let isYomTov = (dToday.yomtov === "Y");
     let isKodesh = isShab || isYomTov;
-    // Motzei Shabbos = Saturday after sunset
     let isMotz   = (dayW === 6 && cSec >= sunsetSecs);
 
     let head = "", sub = "", cls = "gold-box";
@@ -511,22 +522,16 @@ function updateUI() {
         sub  = hText;
     } else if (hText !== "") {
         head = hText;
-        // RULE 9 equivalent: Motzei Shabbos Yom Tov → ותודיענו
         sub  = isMotz ? "ותודיענו" : "";
         cls  = "teal-box";
     } else if (isMotz) {
         head = "מוצאי שבת";
         sub  = "אתה חוננתנו";
     } else {
-        // ASHKENAZ default (no מוריד הטל mentioned)
-        head = "יום טוב"; sub = "ותן ברכה";
-        // Actually default weekday — show nothing special, just tefila info
-        head = ""; sub = "";
-        // Show tefila default
         head = "ותן ברכה"; sub = "";
     }
 
-    // RULE 8: Kiddush Levana (3 days / 72h from molad)
+    // RULE 8: Kiddush Levana
     let showKL = getKiddushLevana(now, dDate.heb || "", isShab, hText, dayW);
     let klLine = showKL ? `<span id="status-kl">קידוש לבנה</span>` : "";
 
@@ -540,10 +545,22 @@ function updateUI() {
     // RULE 10: Shabbos image freeze
     updateP1Image(isKodesh);
 
-    // Active zman highlight — 10 rows only (no Rabbeinu Tam)
+    // ── Active zman highlight ─────────────────────────────────────
+    // Display order on screen vs z[] array:
+    //   r1–r9  → z[0]–z[8]  (AM → isPM false)
+    //   r10    → z[10]  שקיעה   (PM)
+    //   r11    → z[9]   מעריב   (PM)  — displayed AFTER sunset but comes after r10
+    //   r12    → z[11]  רבינו תם (PM)
+    // Note: מעריב (z[9]) is later in the evening than שקיעה (z[10]),
+    //       so chronological order on screen is correct: sunset → מעריב → רבינו תם.
     let zT = [];
-    for (let i = 1; i <= 10; i++) zT.push({ id:'r'+i, sec: getSec(dDate.z[i-1], i >= 7) });
-    let nIdx = zT.findIndex(z => z.sec > cSec);
+    for (let i = 1; i <= 9; i++) zT.push({ id:'r'+i,  sec: getSec(dDate.z[i-1], false) });
+    zT.push({ id:'r10', sec: getSec(dDate.z[9],  true) });                      // שקיעה   (Col T)
+    zT.push({ id:'r11', sec: getSec(dDate.z[9],  true) + (51 * 60) });          // מעריב   (sunset + 51 min)
+    zT.push({ id:'r12', sec: getSec(dDate.z[10], true) });                      // רבינו תם (Col W)
+
+    // Filter out zero/missing times before finding next zman
+    let nIdx = zT.findIndex(z => z.sec > cSec && z.sec > 0);
     let tgtId = nIdx !== -1 ? zT[nIdx].id : null;
     if (tgtId !== currentlyHighlightedId) {
         allZRows.forEach(r => r.classList.remove('active-zman'));
@@ -561,10 +578,10 @@ function loadData() {
         schedule         = d.schedule;
         defaultSummerMsg = d.defaultMsg || "";
         shabbosPic       = d.shabbosPic || "";
- if (d.p5) {
-    $('p4').src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1600";
-    $('p4').style.opacity = 1;
-}
+        if (d.p5) {
+            $('p4').src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1600";
+            $('p4').style.opacity = 1;
+        }
         $('ANN').innerText = d.announcements || ""; fit($('ANN'), 4.8);
         moladList = [];
         if (d.moladList && Array.isArray(d.moladList)) {
