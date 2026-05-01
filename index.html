@@ -258,7 +258,7 @@ const $ = id => document.getElementById(id);
 // ── REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL ──────────────────
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRB79cFnLgC3umlsZXHTU9up4lhim2IBiSwlUagZ2zlNib_p4XBuhKjsyK747h0rrh6g/exec";
 
-var defaultSummerMsg = "", p4Images = [], p4Index = 0, shabbosPic = "";
+var defaultSummerMsg = "", shabbosPic = "";
 var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
 var currentlyHighlightedId = null;
 var p1RotateTimer = null;
@@ -412,16 +412,6 @@ function loadWeather() {
     .catch(err => console.log("Weather error:", err));
 }
 
-function rotateP4() {
-    if (p4Images.length === 0 || isShabbosImageActive) return;
-    $('p4').style.opacity = 0;
-    setTimeout(() => {
-        $('p4').src = "https://drive.google.com/thumbnail?id=" + p4Images[p4Index] + "&sz=w1200";
-        $('p4').style.opacity = 1;
-        p4Index = (p4Index + 1) % p4Images.length;
-    }, 800);
-}
-
 // ── MAIN UI UPDATE ────────────────────────────────────────────────
 function updateUI() {
     let now = new Date();
@@ -571,10 +561,9 @@ function loadData() {
         schedule         = d.schedule;
         defaultSummerMsg = d.defaultMsg || "";
         shabbosPic       = d.shabbosPic || "";
-        p4Images = d.p4List || [];
-if (p4Images.length > 0 && !isShabbosImageActive && !p1RotateTimer) {
-    rotateP4();
-    p1RotateTimer = setInterval(rotateP4, 15000);
+ if (d.p5) {
+    $('p4').src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1600";
+    $('p4').style.opacity = 1;
 }
         $('ANN').innerText = d.announcements || ""; fit($('ANN'), 4.8);
         moladList = [];
