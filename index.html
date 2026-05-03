@@ -193,31 +193,32 @@
   .donation-body {
     flex: 1; overflow: hidden;
     display: flex; flex-direction: column;
-    justify-content: space-evenly;
-    padding: 6px 10px; gap: 6px;
+    padding: 0; gap: 0;
   }
-  /* Donor entries separated by a visible gold line */
+  /* Each donor entry gets equal share of the box height */
   .donor-entry {
+    flex: 1;
     display: flex; flex-direction: column;
-    align-items: center; text-align: center;
-    padding: 6px 4px; overflow: hidden;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 4px 8px; overflow: hidden;
     border-bottom: 1px solid var(--gold);
   }
   .donor-entry:last-child { border-bottom: none; }
-  /* Dedication: gold, larger */
+  /* Dedication: gold */
   .donor-dedication {
-    color: #e8c87a; font-size: 5.0vh; line-height: 1.2;
+    color: #e8c87a; font-size: 5.0vh; line-height: 1.15;
     font-family: 'Suez One', 'Arial Hebrew', serif;
     font-weight: 700; word-wrap: break-word; width: 100%;
-    padding-bottom: 4px;
+    padding-bottom: 3px;
     border-bottom: 1px solid #5a4a20;
   }
-  /* Donor name: lighter, below internal divider */
+  /* Donor name: lighter */
   .donor-name {
-    color: #ccc; font-size: 4.2vh; line-height: 1.2;
+    color: #ccc; font-size: 4.2vh; line-height: 1.15;
     font-family: 'Suez One', 'Arial Hebrew', serif;
     font-weight: 400; word-wrap: break-word; width: 100%;
-    padding-top: 4px;
+    padding-top: 3px;
   }
   .donation-empty {
     color: #555; font-size: 2.6vh; text-align: center;
@@ -307,13 +308,13 @@
     <!-- 4. DONATIONS — 28vw -->
     <div class="donation-col">
       <div class="donation-box">
-        <div class="donation-title">נר למאור</div>
+        <div class="donation-title" id="NER_TITLE">נר למאור</div>
         <div class="donation-body" id="NER_BODY">
           <div class="donation-empty">טוען...</div>
         </div>
       </div>
       <div class="donation-box">
-        <div class="donation-title">הוצאות קפה</div>
+        <div class="donation-title" id="COFFEE_TITLE">הוצאות קפה</div>
         <div class="donation-body" id="COFFEE_BODY">
           <div class="donation-empty">טוען...</div>
         </div>
@@ -424,22 +425,64 @@ function fit(el, vhStart) {
     }
 }
 
+// ── HEBREW MONTH EXTRACTOR ────────────────────────────────────────
+/**
+ * Extracts month + year from Hebrew date string.
+ * e.g. "ט״ו אייר תשפ״ה" → "אייר תשפ״ה"
+ */
+function getHebMonth(hebDate) {
+    if (!hebDate) return "";
+    // Hebrew date format: "day month year" — split by space, take parts [1] onward
+    let parts = hebDate.trim().split(/\s+/);
+    if (parts.length >= 3) return parts.slice(1).join(" ");
+    if (parts.length === 2) return parts[1];
+    return "";
+}
+
 // ── DONATION BOX RENDERER ─────────────────────────────────────────
-function renderDonors(containerId, donors) {
+/**
+ * Renders donors into a box. Each entry gets equal height (flex:1).
+ * Font scales down as a unit by checking the entry's own scrollHeight.
+ * Month is shown in the title bar.
+ */
+function renderDonors(containerId, titleId, donors, hebMonth) {
     let box = $(containerId);
     if (!box) return;
+
+    // Update title with month
+    let titleEl = $(titleId);
+    if (titleEl && hebMonth) {
+        let base = titleEl.dataset.base || titleEl.innerText;
+        titleEl.dataset.base = base;
+        titleEl.innerText = base + " | " + hebMonth;
+    }
+
     if (!donors || donors.length === 0) {
         box.innerHTML = '<div class="donation-empty">לא הוזן תוכן לחודש זה</div>';
         return;
     }
+
     box.innerHTML = donors.map(d => `
         <div class="donor-entry">
             <div class="donor-dedication">${d.dedication || ""}</div>
-            ${d.donor ? `<div class="donor-name">&#x05DE;&#x05D5;&#x05E7;&#x05D3;&#x05E9; &#x05E2;&#x05F4;&#x05D9; ${d.donor}</div>` : ""}
+            ${d.donor ? `<div class="donor-name">מוקדש ע"י ${d.donor}</div>` : ""}
         </div>
     `).join('');
-    box.querySelectorAll('.donor-dedication').forEach(el => fit(el, 5.0));
-    box.querySelectorAll('.donor-name').forEach(el => fit(el, 4.2));
+
+    // Scale each entry as a unit based on its own overflow
+    box.querySelectorAll('.donor-entry').forEach(entry => {
+        let dedEl  = entry.querySelector('.donor-dedication');
+        let nameEl = entry.querySelector('.donor-name');
+        if (!dedEl) return;
+        let dedVh  = 5.0, nameVh = 4.2;
+        // Shrink until entry content fits within allocated height
+        while (entry.scrollHeight > entry.clientHeight && dedVh > 1.0) {
+            dedVh  = Math.max(1.0, dedVh  - 0.15);
+            nameVh = Math.max(1.0, nameVh - 0.13);
+            dedEl.style.fontSize  = dedVh  + "vh";
+            if (nameEl) nameEl.style.fontSize = nameVh + "vh";
+        }
+    });
 }
 
 // ── MOLAD PARSING ─────────────────────────────────────────────────
@@ -669,8 +712,9 @@ function applyData(d) {
         fit($('O2'), 5.0);
     }
 
-    renderDonors('NER_BODY',    d.nerDonors    || []);
-    renderDonors('COFFEE_BODY', d.coffeeDonors || []);
+    let hebMonth = getHebMonth(schedule[getIso(new Date())]?.heb || "");
+    renderDonors('NER_BODY',    'NER_TITLE',    d.nerDonors    || [], hebMonth);
+    renderDonors('COFFEE_BODY', 'COFFEE_TITLE', d.coffeeDonors || [], hebMonth);
 
     moladList = [];
     if (d.moladList && Array.isArray(d.moladList)) {
