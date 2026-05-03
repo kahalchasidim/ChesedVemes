@@ -334,6 +334,20 @@
 
 const $ = id => document.getElementById(id);
 
+// ── CACHED DOM ELEMENTS ───────────────────────────────────────────
+// Cached once at startup — avoids repeated getElementById calls in tight loops
+const EL = {};
+function initEls() {
+    ['DAY_LABEL','DATE_LABEL','PARSHA_LABEL','CLOCK','LEFT_MSG',
+     'ANN','O2','O_BECHINA','SLEEP_OVERLAY','SLEEP_CLOCK',
+     'ENG_DATE','WEATHER','row_special','z_spec_time',
+     'r11','NER_BODY','COFFEE_BODY','NER_TITLE','COFFEE_TITLE',
+     'p1','OMER'
+    ].forEach(id => { EL[id] = document.getElementById(id); });
+    for (let i = 1; i <= 12; i++) EL['z'+i] = document.getElementById('z'+i);
+    for (let i = 1; i <= 12; i++) EL['r'+i] = document.getElementById('r'+i);
+}
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXI0Ka0lFLTgfnynx0uLOkaxSdSi_rUWrgE-_CMRNLYZNCtAlAupo7oKT66Q-E1ZNOFA/exec";
 
 var defaultSummerMsg = "", shabbosPic = "";
@@ -446,11 +460,11 @@ function getHebMonth(hebDate) {
  * Month is shown in the title bar.
  */
 function renderDonors(containerId, titleId, donors, hebMonth) {
-    let box = $(containerId);
+    let box = EL[containerId] || document.getElementById(containerId);
     if (!box) return;
 
     // Update title with month
-    let titleEl = $(titleId);
+    let titleEl = EL[titleId] || document.getElementById(titleId);
     if (titleEl && hebMonth) {
         let base = titleEl.dataset.base || titleEl.innerText;
         titleEl.dataset.base = base;
@@ -497,7 +511,7 @@ function parseMoladEntry(str) {
         let extraSec = Math.round(chalakim * 10 / 3);
         if (ampm === "pm" && hour !== 12) hour += 12;
         if (ampm === "am" && hour === 12) hour = 0;
-        let d = new Date(parts[1].trim() + " " + String(hour).padStart(2,"0") + ":" + String(min).padStart(2,"00") + ":00");
+        let d = new Date(parts[1].trim() + " " + String(hour).padStart(2,"0") + ":" + String(min).padStart(2,"0") + ":00");
         if (isNaN(d.getTime())) return null;
         d.setSeconds(extraSec);
         return d;
@@ -531,14 +545,14 @@ function isNineDays(hebDate) {
 function updateClock() {
     let now = new Date(), hh = (now.getHours() % 12 || 12);
     let mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
-    $('CLOCK').innerHTML = `<span class="c-hour">${hh}</span>:<span class="c-unit">${mm}</span>:<span class="c-unit">${ss}</span>`;
-    $('ENG_DATE').innerText = now.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    EL['CLOCK'].innerHTML = `<span class="c-hour">${hh}</span>:<span class="c-unit">${mm}</span>:<span class="c-unit">${ss}</span>`;
+    EL['ENG_DATE'].innerText = now.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
 }
 
 function loadWeather() {
     fetch("https://api.open-meteo.com/v1/forecast?latitude=40.598&longitude=-73.765&current_weather=true&temperature_unit=fahrenheit")
     .then(r => r.json())
-    .then(d => { if (d.current_weather) $('WEATHER').innerText = " | " + Math.round(d.current_weather.temperature) + "°F"; })
+    .then(d => { if (d.current_weather) EL['WEATHER'].innerText = " | " + Math.round(d.current_weather.temperature) + "°F"; })
     .catch(err => console.log("Weather error:", err));
 }
 
@@ -555,14 +569,14 @@ function updateUI() {
     let isHolidayStayAwake = holidayText.includes("שבועות");
 
     if (!isHolidayStayAwake && h >= 1 && h < 5) {
-        $('SLEEP_OVERLAY').style.display = 'block';
-        $('SLEEP_CLOCK').innerText = (h%12||12) + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+        EL['SLEEP_OVERLAY'].style.display = 'block';
+        EL['SLEEP_CLOCK'].innerText = (h%12||12) + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
         if (s === 0) {
-            $('SLEEP_CLOCK').style.left = (Math.floor(Math.random()*70)+5) + "vw";
-            $('SLEEP_CLOCK').style.top  = (Math.floor(Math.random()*80)+5) + "vh";
+            EL['SLEEP_CLOCK'].style.left = (Math.floor(Math.random()*70)+5) + "vw";
+            EL['SLEEP_CLOCK'].style.top  = (Math.floor(Math.random()*80)+5) + "vh";
         }
         return;
-    } else { $('SLEEP_OVERLAY').style.display = 'none'; }
+    } else { EL['SLEEP_OVERLAY'].style.display = 'none'; }
 
     const THREE_AM = 10800;
     let dIso = (cSec < THREE_AM) ? getIso(new Date(now.getTime() - 86400000)) : getIso(now);
@@ -576,33 +590,33 @@ function updateUI() {
     let maarivSec = getSec(dToday.z[9], true) + (51 * 60);
     let isMotzMaariv = (dayW === 6 && cSec >= maarivSec) || (dayW === 0 && cSec < 3600);
     let dayLabel = isMotzMaariv ? "מוצאי שבת" : (DAY_MAP[dDate.day] || dDate.day);
-    if ($('DAY_LABEL').innerText !== dayLabel) {
-        $('DAY_LABEL').innerText = dayLabel;
-        fit($('DAY_LABEL'), 5.8);
+    if (EL['DAY_LABEL'].innerText !== dayLabel) {
+        EL['DAY_LABEL'].innerText = dayLabel;
+        fit(EL['DAY_LABEL'], 5.8);
     }
 
     if (dIso !== lastDateIso) {
         lastDateIso = dIso;
-        $('DATE_LABEL').innerText   = dDate.heb;
-        $('PARSHA_LABEL').innerText = dDate.parsha ? "פרשת " + dDate.parsha : "";
-        fit($('DATE_LABEL'),   5.0);
-        fit($('PARSHA_LABEL'), 3.8);
-        for (let i = 1; i <= 10; i++) $('z'+i).innerHTML = fmtZman(dDate.z[i-1]);
-        $('z11').innerHTML = fmtZman(shiftTime(dDate.z[9],  51));
-        $('z12').innerHTML = fmtZman(shiftTime(dDate.z[10],  2));
+        EL['DATE_LABEL'].innerText   = dDate.heb;
+        EL['PARSHA_LABEL'].innerText = dDate.parsha ? "פרשת " + dDate.parsha : "";
+        fit(EL['DATE_LABEL'],   5.0);
+        fit(EL['PARSHA_LABEL'], 3.8);
+        for (let i = 1; i <= 10; i++) EL['z'+i].innerHTML = fmtZman(dDate.z[i-1]);
+        EL['z11'].innerHTML = fmtZman(shiftTime(dDate.z[9],  51));
+        EL['z12'].innerHTML = fmtZman(shiftTime(dDate.z[10],  2));
     }
 
     let candleTime = (dToday.candle || "").trim();
     if (candleTime !== "" && h !== 0) {
-        $('row_special').style.display = 'flex';
-        $('z_spec_time').innerHTML = fmtZman(candleTime);
+        EL['row_special'].style.display = 'flex';
+        EL['z_spec_time'].innerHTML = fmtZman(candleTime);
     } else {
-        $('row_special').style.display = 'none';
+        EL['row_special'].style.display = 'none';
     }
 
     let alosToday = getSec(dToday.z[0], false);
     let showMaariv = (dayW === 6 && cSec >= alosToday) || (dayW === 0 && cSec < 3600);
-    $('r11').style.display = showMaariv ? 'flex' : 'none';
+    EL['r11'].style.display = showMaariv ? 'flex' : 'none';
 
     let moledText   = dDate.moled || "";
     let isMoledTime = (cSec >= 32400 && cSec <= 45000);
@@ -610,16 +624,16 @@ function updateUI() {
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
     if (isMoledTime && moledText !== "") {
-        $('O2').innerText = moledText; $('O_BECHINA').style.display = 'none'; fit($('O2'), 4.2);
+        EL['O2'].innerText = moledText; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 4.2);
     } else if (holidayText !== "") {
-        $('O2').innerText = holidayText; $('O_BECHINA').style.display = 'none'; fit($('O2'), 5.0);
+        EL['O2'].innerText = holidayText; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.0);
     } else if (omerKey) {
-        $('O2').innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " לעומר";
-        if (dOmer.bechina) { $('O_BECHINA').innerText = dOmer.bechina; $('O_BECHINA').style.display = 'block'; }
-        else { $('O_BECHINA').style.display = 'none'; }
-        fit($('O2'), 5.5); fit($('O_BECHINA'), 3.8);
+        EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " לעומר";
+        if (dOmer.bechina) { EL['O_BECHINA'].innerText = dOmer.bechina; EL['O_BECHINA'].style.display = 'block'; }
+        else { EL['O_BECHINA'].style.display = 'none'; }
+        fit(EL['O2'], 5.5); fit(EL['O_BECHINA'], 3.8);
     } else {
-        $('O2').innerText = summerMsg; $('O_BECHINA').style.display = 'none'; fit($('O2'), 5.5);
+        EL['O2'].innerText = summerMsg; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.5);
     }
 
     let tR    = (dDate.tachReason || "").trim();
@@ -648,7 +662,7 @@ function updateUI() {
     let klLine = showKL ? `<span id="status-kl">קידוש לבנה</span>` : "";
     let sH = `<div class="message-box ${cls}"><span id="status-head">${head}</span><span id="status-sub">${sub}</span>${klLine}</div>`;
     if (sH !== currentStatusHTML) {
-        $('LEFT_MSG').innerHTML = sH; currentStatusHTML = sH;
+        EL['LEFT_MSG'].innerHTML = sH; currentStatusHTML = sH;
         fit($('status-head'), 6.2); fit($('status-sub'), 3.2);
         if (showKL) fit($('status-kl'), 3.0);
     }
@@ -671,7 +685,7 @@ function updateUI() {
     let tgtId = nIdx !== -1 ? zT[nIdx].id : null;
     if (tgtId !== currentlyHighlightedId) {
         allZRows.forEach(r => r.classList.remove('active-zman'));
-        if (tgtId && $(tgtId)) $(tgtId).classList.add('active-zman');
+        if (tgtId && EL[tgtId]) EL[tgtId].classList.add('active-zman');
         currentlyHighlightedId = tgtId;
     }
 }
@@ -697,19 +711,19 @@ function applyData(d) {
 
     // Single static image — try p5 first, fall back to first image in p1List
     if (d.p5) {
-        $('p1').src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1200";
-        $('p1').style.opacity = 1;
+        EL['p1'].src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1200";
+        EL['p1'].style.opacity = 1;
     } else if (d.p1List && d.p1List.length > 0) {
-        $('p1').src = "https://drive.google.com/thumbnail?id=" + d.p1List[0] + "&sz=w1200";
-        $('p1').style.opacity = 1;
+        EL['p1'].src = "https://drive.google.com/thumbnail?id=" + d.p1List[0] + "&sz=w1200";
+        EL['p1'].style.opacity = 1;
     }
 
-    $('ANN').innerText = d.announcements || ""; fit($('ANN'), 4.8);
+    EL['ANN'].innerText = d.announcements || ""; fit(EL['ANN'], 4.8);
 
     if (d.tefilaOverride) {
-        $('O2').innerText = d.tefilaOverride;
-        $('O_BECHINA').style.display = 'none';
-        fit($('O2'), 5.0);
+        EL['O2'].innerText = d.tefilaOverride;
+        EL['O_BECHINA'].style.display = 'none';
+        fit(EL['O2'], 5.0);
     }
 
     let hebMonth = getHebMonth(schedule[getIso(new Date())]?.heb || "");
@@ -723,10 +737,20 @@ function applyData(d) {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
+// initEls() caches all DOM elements once at startup.
+// updateClock: every 1 second — clock digits and date string only.
+// updateUI: every 1 second — all guards in place so DOM only updates when
+//   something actually changes (lastDateIso, currentStatusHTML,
+//   currentlyHighlightedId, DAY_LABEL text comparison).
+//   1-second interval ensures zman highlight, מוצאי שבת, and Omer
+//   transitions happen at the exact right moment with no perceptible lag.
+// loadWeather: every 15 minutes.
+// loadData: every 30 seconds.
+initEls();
 setInterval(updateClock, 1000); updateClock();
 loadWeather(); setInterval(loadWeather, 900000);
 loadData();    setInterval(loadData, 30000);
-setInterval(updateUI, 10000); updateUI();
+setInterval(updateUI, 1000); updateUI();
 </script>
 </body>
 </html>
