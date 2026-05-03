@@ -281,11 +281,11 @@
         <span class="z-time" id="z_spec_time">--:--</span>
       </div>
       <div class="z-row" id="r10"><span class="z-label">שקיעת החמה</span><span class="z-time" id="z10">--:--</span></div>
-      <div class="z-row" id="r11" style="background:#2b2400;">
+      <div class="z-row" id="r11">
         <span class="z-label">מעריב</span>
         <span class="z-time" id="z11">--:--</span>
       </div>
-      <div class="z-row" id="r12" style="background:#2b2400;">
+      <div class="z-row" id="r12">
         <span class="z-label">רבינו תם</span>
         <span class="z-time" id="z12">--:--</span>
       </div>
@@ -350,7 +350,7 @@ function initEls() {
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXI0Ka0lFLTgfnynx0uLOkaxSdSi_rUWrgE-_CMRNLYZNCtAlAupo7oKT66Q-E1ZNOFA/exec";
 
-var defaultSummerMsg = "", shabbosPic = "";
+var defaultSummerMsg = "", shabbosPic = "", tefilaOverride = "";
 var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
 var currentlyHighlightedId = null;
 
@@ -636,19 +636,21 @@ function updateUI() {
     EL['r11'].style.display = showMaariv ? 'flex' : 'none';
 
     let moledText   = dDate.moled || "";
-    let isMoledTime = (cSec >= 32400 && cSec <= 45000);
+    let isMoledTime = (cSec >= 28800 && cSec <= 43200); // 8:00 AM – 12:00 PM
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
+    // Omer box priority: Molad → Omer → Col F / tefilaOverride
+    // Col D (holidayText) goes to STATUS BOX only — never shown here
     if (isMoledTime && moledText !== "") {
         EL['O2'].innerText = moledText; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 4.2);
-    } else if (holidayText !== "") {
-        EL['O2'].innerText = holidayText; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.0);
     } else if (omerKey) {
-        EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " לעומר";
+        EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
         if (dOmer.bechina) { EL['O_BECHINA'].innerText = dOmer.bechina; EL['O_BECHINA'].style.display = 'block'; }
         else { EL['O_BECHINA'].style.display = 'none'; }
         fit(EL['O2'], 5.5); fit(EL['O_BECHINA'], 3.8);
+    } else if (tefilaOverride) {
+        EL['O2'].innerText = tefilaOverride; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.0);
     } else {
         EL['O2'].innerText = summerMsg; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.5);
     }
@@ -721,9 +723,31 @@ function updateUI() {
 
     let head = "", sub = "", cls = "gold-box";
     if (isShab) {
-        head = "שבת קודש";
-        sub  = hText;
-        cls  = (hText !== "") ? "teal-box" : "gold-box";
+        // On Shabbos, Col D may contain special text (שבת מברכים סיון, שבת הגדול, etc.)
+        // If Col D has text → it becomes the head (teal). Sub = Rosh Chodesh day if מברכים.
+        if (hText !== "") {
+            head = hText;
+            cls  = "teal-box";
+            // If שבת מברכים: look ahead up to 8 days for ראש חודש entries
+            if (hText.includes("מברכים")) {
+                let rcDays = [];
+                for (let ahead = 1; ahead <= 8; ahead++) {
+                    let aheadIso = getIso(new Date(now.getTime() + ahead * 86400000));
+                    let aheadDay = schedule[aheadIso];
+                    if (aheadDay && (aheadDay.holidayText || "").includes("ראש חודש")) {
+                        let dayName = DAY_MAP[aheadDay.day] || aheadDay.day || "";
+                        if (dayName && !rcDays.includes(dayName)) rcDays.push(dayName);
+                    }
+                }
+                sub = rcDays.join(" ו");
+            } else {
+                sub = "";
+            }
+        } else {
+            head = "שבת קודש";
+            cls  = "gold-box";
+            sub  = "";
+        }
     } else if (hText !== "") {
         head = hText; sub = isMotz ? "ותודיענו" : tR; cls = "teal-box";
     } else if (isMotz) {
@@ -785,6 +809,7 @@ function loadData() {
 function applyData(d) {
     schedule         = d.schedule;
     defaultSummerMsg = d.defaultMsg || "";
+    tefilaOverride   = d.tefilaOverride || "";
 
     // Single static image — try p5 first, fall back to first image in p1List
     if (d.p5) {
@@ -796,12 +821,6 @@ function applyData(d) {
     }
 
     EL['ANN'].innerText = d.announcements || ""; fit(EL['ANN'], 4.8);
-
-    if (d.tefilaOverride) {
-        EL['O2'].innerText = d.tefilaOverride;
-        EL['O_BECHINA'].style.display = 'none';
-        fit(EL['O2'], 5.0);
-    }
 
     let hebMonth = getHebMonth(schedule[getIso(new Date())]?.heb || "");
     renderDonors('NER_BODY',    'NER_TITLE',    d.nerDonors    || [], hebMonth);
