@@ -614,7 +614,7 @@ function updateUI() {
     } else if (holidayText !== "") {
         $('O2').innerText = holidayText; $('O_BECHINA').style.display = 'none'; fit($('O2'), 5.0);
     } else if (omerKey) {
-        $('O2').innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " לעומר";
+        $('O2').innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
         if (dOmer.bechina) { $('O_BECHINA').innerText = dOmer.bechina; $('O_BECHINA').style.display = 'block'; }
         else { $('O_BECHINA').style.display = 'none'; }
         fit($('O2'), 5.5); fit($('O_BECHINA'), 3.8);
