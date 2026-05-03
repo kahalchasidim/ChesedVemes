@@ -429,6 +429,23 @@ function getCandleSec(t) {
 function getIso(d) {
     return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
 }
+
+/**
+ * extractHebDay: extracts the numeric day from a Hebrew date string.
+ * e.g. "ט״ו ניסן תשפ״ה" → 15, "כ״ב תשרי" → 22
+ */
+function extractHebDay(hebStr) {
+    const HEB_VALS = {
+        'א':1,'ב':2,'ג':3,'ד':4,'ה':5,'ו':6,'ז':7,'ח':8,'ט':9,
+        'י':10,'כ':20,'ך':20,'ל':30
+    };
+    let match = hebStr.trim().match(/^([\u05D0-\u05EA"'\u05F3\u05F4]+)/);
+    if (!match) return 0;
+    let tok = match[1].replace(/['"״\u05F3\u05F4]/g, "");
+    let total = 0;
+    for (let ch of tok) { if (HEB_VALS[ch] !== undefined) total += HEB_VALS[ch]; }
+    return total;
+}
 function fit(el, vhStart) {
     if (!el) return;
     let p = el.parentElement, vh = vhStart;
@@ -643,6 +660,65 @@ function updateUI() {
     let isYomTov = (dToday.yomtov === "Y");
     let isMotz   = (dayW===6 && cSec >= rtSecs);
 
+    // ── GESHEM / TAL UMATAR LOGIC (Ashkenaz) ─────────────────────
+    // מוריד הגשם: Simchas Torah Mussaf → Pesach Mussaf (always in sub when active)
+    // ותן טל ומטר: Dec 4/5 → Pesach Mussaf (replaces ותן ברכה as head)
+    // מוריד הטל: never displayed for this shul
+    // Pesach cutoff = חצות היום (z[6]) on 15 Nisan
+    // Simchas Torah cutoff = חצות היום (z[6]) on 22 Tishrei
+    // Dec 4/5 cutoff = Dec 4 (Dec 5 in year after civil leap year)
+    //
+    // Season detection from civil date (no Hebrew library needed):
+    //   isGeshemSeason: true from Simchas Torah חצות through Pesach חצות
+    //   isTalUmatarSeason: true from Dec 4/5 through Pesach חצות
+    //
+    // We detect Pesach (15 Nisan) and Simchas Torah (22 Tishrei) from
+    // the Hebrew date string already in dDate.heb.
+
+    let chatzotSec = getSec(dDate.z[6], true); // חצות היום in seconds
+    let hebStr     = dDate.heb || "";
+
+    // Is today 15 Nisan (Pesach day 1)?
+    let isPesach1  = hebStr.includes("ניסן") && extractHebDay(hebStr) === 15;
+    // Is today 22 Tishrei (Simchas Torah / Shemini Atzeres)?
+    let isSimchas  = hebStr.includes("תשרי") && extractHebDay(hebStr) === 22;
+    // Has Mussaf passed today (cSec >= חצות)?
+    let pastChatzot = (cSec >= chatzotSec && chatzotSec > 0);
+
+    // Determine geshem season using civil month/day
+    // Geshem season: after Simchas Torah חצות until Pesach חצות
+    // We track this via civil date ranges:
+    //   Oct 1 – Apr 30: geshem season (approximate, refined by exact days below)
+    //   May 1 – Sep 30: summer (ותן ברכה, no sub)
+    let civMonth = now.getMonth() + 1; // 1-12
+    let civDay   = now.getDate();
+    let civYear  = now.getFullYear();
+
+    // ותן טל ומטר starts Dec 4 (Dec 5 in year after civil leap year)
+    function isLeapYear(y) { return (y%4===0 && y%100!==0) || y%400===0; }
+    let talUmatarDay = isLeapYear(civYear - 1) ? 5 : 4; // Dec 4 or 5
+
+    // Is it ותן טל ומטר season?
+    // Dec talUmatarDay → Pesach חצות
+    let isTalUmatar = false;
+    if (civMonth === 12 && civDay >= talUmatarDay) isTalUmatar = true;
+    else if (civMonth === 1 || civMonth === 2) isTalUmatar = true;
+    else if (civMonth === 3) isTalUmatar = true; // March (Pesach is in April usually)
+    else if (civMonth === 4) isTalUmatar = true; // April — refined below
+    // Cut off at Pesach חצות
+    if (isPesach1 && pastChatzot) isTalUmatar = false;
+    if (civMonth >= 5 && civMonth <= 11) isTalUmatar = false; // May–Nov: never
+
+    // Is it גשם season? (Simchas Torah חצות → Pesach חצות)
+    // Roughly Oct–Apr, but we refine the edges:
+    let isGeshem = false;
+    if (civMonth >= 10 || civMonth <= 4) isGeshem = true;
+    if (civMonth >= 5 && civMonth <= 9) isGeshem = false;
+    // Simchas Torah (22 Tishrei) edge: only active AFTER חצות
+    if (isSimchas && !pastChatzot) isGeshem = false;
+    // Pesach edge: cut off AT חצות on 15 Nisan
+    if (isPesach1 && pastChatzot) isGeshem = false;
+
     let head = "", sub = "", cls = "gold-box";
     if (isShab) {
         head = "שבת קודש";
@@ -655,7 +731,8 @@ function updateUI() {
     } else if (tR !== "") {
         head = "אין אומרים תחנון"; sub = tR; cls = "teal-box";
     } else {
-        head = "ותן ברכה"; sub = "";
+        head = isTalUmatar ? "ותן טל ומטר" : "ותן ברכה";
+        sub  = isGeshem    ? "מוריד הגשם"  : "";
     }
 
     let showKL = getKiddushLevana(now, dDate.heb || "", isShab, hText, dayW);
