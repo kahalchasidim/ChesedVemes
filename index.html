@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>קהל חסד ואמת – Master Board</title>
-<!-- Version 1.1 – May 2026 | Based on Bayswater Protocol v2.8 -->
+<!-- Version 1.9 – May 2026 | Based on Bayswater Protocol v2.9 -->
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Suez+One&display=swap');
   :root { --gold: #c29d6d; }
@@ -57,9 +57,19 @@
     justify-content: center; align-items: center;
     background: #050505; overflow: hidden;
     border-radius: 10px 0 0 10px;
+    padding: 4px 8px;
   }
-  #DAY_LABEL, #DATE_LABEL, #PARSHA_LABEL {
-    font-size: 5.8vh; line-height: 0.9; white-space: nowrap; padding: 0; margin: 0;
+  #DAY_LABEL {
+    font-size: 5.8vh; line-height: 0.95; padding: 0; margin: 0;
+    width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
+  }
+  #DATE_LABEL {
+    font-size: 5.0vh; line-height: 0.95; padding: 0; margin: 0;
+    width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
+  }
+  #PARSHA_LABEL {
+    font-size: 3.8vh; line-height: 1.0; padding: 0; margin: 0;
+    width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
   }
   .main-clock {
     flex: 1 1 auto; display: flex;
@@ -94,13 +104,15 @@
   #status-kl   { font-size: 3.0vh; color: #aaffcc; display: block; width: 100%; line-height: 1.0; }
 
   /* ── MAIN BODY ───────────────────────────────────────────────── */
-  .main-body { height: 70vh; display: flex; gap: 10px; overflow: hidden; }
+  .main-body {
+    flex: 1; display: flex; gap: 8px; overflow: hidden; min-height: 0;
+  }
 
-  /* Zemanim column — 12 rows total */
+  /* ── ZEMANIM ─────────────────────────────────────────────────── */
   .zemanim-col {
     width: 23vw; border: 2px solid var(--gold); border-radius: 10px;
     display: flex; flex-direction: column; padding: 2px;
-    background: #050505; overflow: hidden;
+    background: #050505; overflow: hidden; flex-shrink: 0;
   }
   .z-row {
     display: flex; justify-content: space-between;
@@ -111,46 +123,119 @@
   .z-time  { color: white; font-size: 3.2vh; font-family: 'Assistant', sans-serif; font-weight: 800; direction: ltr; }
   .active-zman { background: var(--gold) !important; }
   .active-zman .z-label, .active-zman .z-time { color: #000 !important; }
-
-  /* Candle lighting row — teal */
   #row_special { background: #004d40 !important; }
   #row_special .z-label { color: #00bfa5 !important; }
   #row_special .z-time  { color: #ffffff !important; }
+  #r11 { display: none; }
 
-  /* ── CONTENT COLUMN ──────────────────────────────────────────── */
-  .content-col {
-    flex: 1; display: flex; flex-direction: row; gap: 10px; overflow: hidden;
-  }
-  .big-img-box {
-    flex: 1.6; border: 2px solid var(--gold); border-radius: 10px;
+  /* ── PORTRAIT IMAGE (8.5:11) ─────────────────────────────────── */
+  .portrait-col {
+    flex-shrink: 0;
+    aspect-ratio: 8.5 / 11;
+    border: 2px solid var(--gold); border-radius: 10px;
     background: #000; overflow: hidden; position: relative;
   }
-  .big-img-box img {
-    width: 100%; height: 100%; object-fit: fill;
-    position: absolute; top: 0; left: 0; transition: opacity 0.8s ease-in-out;
+  .portrait-col img {
+    width: 100%; height: 100%; object-fit: cover;
+    position: absolute; top: 0; left: 0;
+    transition: opacity 0.8s ease-in-out;
   }
-  .right-col {
-    flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+
+  /* ── MIDDLE COLUMN ───────────────────────────────────────────── */
+  .middle-col {
+    flex: 1; display: flex; flex-direction: column;
+    gap: 8px; overflow: hidden; min-width: 0;
   }
   .data-box {
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
     background: #080808; display: flex; align-items: center;
-    justify-content: center; text-align: center; padding: 8px 12px; overflow: hidden;
+    justify-content: center; text-align: center;
+    padding: 8px 12px; overflow: hidden;
   }
-  .data-box span { font-weight: 800; font-size: 4.8vh; line-height: 1.1; display: block; width: 100%; word-wrap: break-word; }
-
-  /* Omer box */
+  .data-box span {
+    font-weight: 800; font-size: 4.8vh; line-height: 1.1;
+    display: block; width: 100%; word-wrap: break-word;
+  }
   .omer-box {
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
     background: #001f1a; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 4px 6px; text-align: center; overflow: hidden;
   }
-  #O2 { color: var(--gold); font-weight: 800; line-height: 1.0; width: 96%; display: block; margin: 0 auto; word-wrap: break-word; overflow: hidden; }
-  #O_BECHINA { font-size: 3.5vh; color: #fff; border-top: 1px solid #444; padding-top: 2px; margin-top: 4px; width: 90%; overflow: hidden; }
+  #O2 {
+    color: var(--gold); font-weight: 800; line-height: 1.0;
+    width: 96%; display: block; margin: 0 auto;
+    word-wrap: break-word; overflow: hidden;
+  }
+  #O_BECHINA {
+    font-size: 3.5vh; color: #fff; border-top: 1px solid #444;
+    padding-top: 2px; margin-top: 4px; width: 90%; overflow: hidden;
+  }
 
-  #SLEEP_OVERLAY { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 10000; display: none; }
-  #SLEEP_CLOCK { position: absolute; color: #444; font-family: 'Assistant', sans-serif; font-size: 8vh; font-weight: 700; transition: all 2.0s ease-in-out; white-space: nowrap; }
+  /* ── DONATION COLUMN — 28vw ──────────────────────────────────── */
+  .donation-col {
+    width: 28vw; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    gap: 8px; overflow: hidden;
+  }
+  .donation-box {
+    flex: 1; border: 2px solid var(--gold); border-radius: 10px;
+    background: #080500; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .donation-title {
+    background: var(--gold); color: #000;
+    font-size: 3.2vh; font-weight: 800;
+    text-align: center; padding: 4px 8px;
+    border-radius: 8px 8px 0 0; flex-shrink: 0;
+    letter-spacing: 0.03em;
+  }
+  .donation-body {
+    flex: 1; overflow: hidden;
+    display: flex; flex-direction: column;
+    justify-content: space-evenly;
+    padding: 6px 10px; gap: 6px;
+  }
+  /* Donor entries separated by a visible gold line */
+  .donor-entry {
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 6px 4px; overflow: hidden;
+    border-bottom: 1px solid var(--gold);
+  }
+  .donor-entry:last-child { border-bottom: none; }
+  /* Dedication: gold, larger */
+  .donor-dedication {
+    color: #e8c87a; font-size: 5.0vh; line-height: 1.2;
+    font-family: 'Suez One', 'Arial Hebrew', serif;
+    font-weight: 700; word-wrap: break-word; width: 100%;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #5a4a20;
+  }
+  /* Donor name: lighter, below internal divider */
+  .donor-name {
+    color: #ccc; font-size: 4.2vh; line-height: 1.2;
+    font-family: 'Suez One', 'Arial Hebrew', serif;
+    font-weight: 400; word-wrap: break-word; width: 100%;
+    padding-top: 4px;
+  }
+  .donation-empty {
+    color: #555; font-size: 2.6vh; text-align: center;
+    padding: 10px; font-family: 'Assistant', sans-serif;
+  }
+
+  /* ── SLEEP OVERLAY ───────────────────────────────────────────── */
+  #SLEEP_OVERLAY {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: black; z-index: 10000; display: none;
+  }
+  #SLEEP_CLOCK {
+    position: absolute; color: #444;
+    font-family: 'Assistant', sans-serif;
+    font-size: 8vh; font-weight: 700;
+    transition: all 2.0s ease-in-out; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -158,6 +243,7 @@
 <div id="SLEEP_OVERLAY"><div id="SLEEP_CLOCK">00:00:00</div></div>
 
 <div class="master-frame">
+
   <div class="branding-bar">
     <div id="ENG_SIDE"><span id="ENG_DATE"></span><span id="WEATHER"></span></div>
     <div class="branding-shul">קהל חסד ואמת</div>
@@ -177,7 +263,8 @@
   </div>
 
   <div class="main-body">
-    <!-- Zemanim: 12 rows (r1–r10 + candle + maariv + RT) -->
+
+    <!-- 1. ZEMANIM -->
     <div class="zemanim-col" id="ZMANIM_LIST">
       <div class="z-row" id="r1"><span class="z-label">עלות השחר</span><span class="z-time" id="z1">--:--</span></div>
       <div class="z-row" id="r2"><span class="z-label">הנחת תפילין</span><span class="z-time" id="z2">--:--</span></div>
@@ -188,78 +275,69 @@
       <div class="z-row" id="r7"><span class="z-label">חצות היום</span><span class="z-time" id="z7">--:--</span></div>
       <div class="z-row" id="r8"><span class="z-label">מנחה גדולה</span><span class="z-time" id="z8">--:--</span></div>
       <div class="z-row" id="r9"><span class="z-label">פלג המנחה</span><span class="z-time" id="z9">--:--</span></div>
-      <!-- Candle lighting row: teal, shown when Col S has a value, hidden after midnight -->
       <div class="z-row" id="row_special" style="display:none;">
         <span class="z-label">הדלקת נרות</span>
         <span class="z-time" id="z_spec_time">--:--</span>
       </div>
       <div class="z-row" id="r10"><span class="z-label">שקיעת החמה</span><span class="z-time" id="z10">--:--</span></div>
-      <!-- NEW: מעריב = 51 min after sunset (Col T) -->
-      <div class="z-row" id="r11"><span class="z-label">מעריב</span><span class="z-time" id="z11">--:--</span></div>
-      <!-- NEW: רבינו תם = Col W -->
-      <div class="z-row" id="r12"><span class="z-label">רבינו תם</span><span class="z-time" id="z12">--:--</span></div>
+      <div class="z-row" id="r11" style="background:#2b2400;">
+        <span class="z-label">מעריב</span>
+        <span class="z-time" id="z11">--:--</span>
+      </div>
+      <div class="z-row" id="r12" style="background:#2b2400;">
+        <span class="z-label">רבינו תם</span>
+        <span class="z-time" id="z12">--:--</span>
+      </div>
     </div>
 
-    <!-- Content: big image left, two text boxes right -->
-    <div class="content-col">
-      <div class="big-img-box">
-        <img id="p4" src="" alt="">
+    <!-- 2. PORTRAIT IMAGE — single static image, no rotation -->
+    <div class="portrait-col">
+      <img id="p1" src="" alt="">
+    </div>
+
+    <!-- 3. MIDDLE -->
+    <div class="middle-col">
+      <div class="data-box"><span id="ANN">טוען מידע...</span></div>
+      <div class="omer-box" id="OMER">
+        <span id="O2">טוען...</span>
+        <div id="O_BECHINA"></div>
       </div>
-      <div class="right-col">
-        <!-- Top text box: announcements -->
-        <div class="data-box"><span id="ANN">טוען מידע...</span></div>
-        <!-- Bottom: Omer / Molad / Holiday -->
-        <div class="omer-box" id="OMER">
-          <span id="O2">טוען...</span>
-          <div id="O_BECHINA"></div>
+    </div>
+
+    <!-- 4. DONATIONS — 28vw -->
+    <div class="donation-col">
+      <div class="donation-box">
+        <div class="donation-title">נר למאור</div>
+        <div class="donation-body" id="NER_BODY">
+          <div class="donation-empty">טוען...</div>
+        </div>
+      </div>
+      <div class="donation-box">
+        <div class="donation-title">הוצאות קפה</div>
+        <div class="donation-body" id="COFFEE_BODY">
+          <div class="donation-empty">טוען...</div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
 /**
- * קהל חסד ואמת — Master Board  |  Version 1.1  |  May 2026
- * Based on Bayswater Protocol v2.8 with the following changes:
- * ─────────────────────────────────────────────────────────────────────
- * RULE 1   CLOCK           12h format, ticking seconds.
- * RULE 2   MATH            Candle lighting = raw Col S. No Rabbeinu Tam row previously —
- *                          NOW ADDED: מעריב (Col T, 51 min after sunset) + רבינו תם (Col W).
- *                          60-min zman (z[10]) used for flip logic only — not displayed.
- * RULE 3   FLIP LOGIC      Date/Parsha flips at SUNSET (z10). Omer flips at sunset.
- * RULE 4   STATUS BOX      Priority: Shabbos > Yom Tov > Motzei Shabbos > Default.
- *                          NO tachanun rule. Default = שמע ישראל / ותן ברכה (no מוריד הטל — Ashkenaz).
- * RULE 5   NIGHT MODE      1:00 AM – 5:00 AM blackout with jumping clock.
- * RULE 6   STAY AWAKE      Night mode disabled when Col D contains "שבועות".
- * RULE 7   OMER BOX        Hierarchy: Moled (9–12:30) > Holiday > Omer count > Summer msg.
- *                          Omer wording: "בעומר" (Ashkenaz).
- * RULE 8   KIDDUSH LEVANA  3 days (72h) after molad → window is 72h–360h.
- *                          Suppressed: Shabbos, Yom Tov, Friday, Nine Days (1–9 Av).
- * RULE 9   CANDLE LIGHTING Teal row in zmanim whenever Col S has a time value.
- *                          Hidden after midnight.
- * RULE 10  SHABBOS IMAGE   p1 rotation freezes on Shabbos image during Shabbos/Yom Tov.
- *                          Flip trigger: sunset (z10) on Friday / Col AA = "Y".
- *                          Resumes after sunset on Motzei Shabbos.
- * RULE 11  LAYOUT          One big image box (left), two text boxes stacked (right).
- * RULE 12  NEW ZMANIM      מעריב = Col T (51 min after sunset). רבינו תם = Col W.
- *                          Both included in active-zman highlight loop.
- * ─────────────────────────────────────────────────────────────────────
- * MOLED FORMAT (moled sheet Col A, no header):
- *   "DayName, Month DD, YYYY, H:MM am/pm and X chalakim"
- * ─────────────────────────────────────────────────────────────────────
+ * קהל חסד ואמת — Master Board  |  Version 1.9  |  May 2026
+ * Based on working v1.5 code. Changes from v1.5:
+ *   1. No image rotation — single static image loaded once from p5
+ *   2. Donor text: 5.0vh, white, Suez One, no divider line between entries
  */
 
 const $ = id => document.getElementById(id);
 
-// ── REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL ──────────────────
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRB79cFnLgC3umlsZXHTU9up4lhim2IBiSwlUagZ2zlNib_p4XBuhKjsyK747h0rrh6g/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXI0Ka0lFLTgfnynx0uLOkaxSdSi_rUWrgE-_CMRNLYZNCtAlAupo7oKT66Q-E1ZNOFA/exec";
 
 var defaultSummerMsg = "", shabbosPic = "";
 var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
 var currentlyHighlightedId = null;
-var p1RotateTimer = null;
-var isShabbosImageActive = false;
 
 const allZRows = document.querySelectorAll('.z-row');
 
@@ -298,46 +376,70 @@ const DAY_MAP = {
 };
 
 // ── HELPERS ───────────────────────────────────────────────────────
+function shiftTime(t, o) {
+    if (!t || t.includes("--")) return "--:--:--";
+    let clean = t.replace(/(AM|PM|am|pm)/g,"").trim();
+    let p = clean.split(':'), h = parseInt(p[0]), m = parseInt(p[1]), s = parseInt(p[2]||0);
+    let total = (h*3600) + (m*60) + s + (o * 60);
+    if (total < 0) total += 86400;
+    if (total >= 86400) total -= 86400;
+    let nh = Math.floor(total / 3600), nm = Math.floor((total % 3600) / 60), ns = total % 60;
+    if (nh > 12) nh -= 12; if (nh === 0) nh = 12;
+    return nh + ":" + String(nm).padStart(2,'0') + ":" + String(ns).padStart(2,'0');
+}
 function fmtZman(t) {
     if (!t || t.includes("--")) return "--:--";
     let c = t.replace(/(AM|PM|am|pm)/g,"").trim(), p = c.split(':');
     return `${p[0]}:${p[1]}<span class="secs">:${p[2]||"00"}</span>`;
 }
 function getSec(t, pm) {
-    if (!t || t.includes("--")) return 0;
-    let p = t.split(':'), h = parseInt(p[0]), m = parseInt(p[1]), s = parseInt(p[2]||0);
+    if (!t || t.toString().includes("--")) return 0;
+    let clean = t.toString().replace(/(AM|PM|am|pm)/g,"").trim();
+    let p = clean.split(':');
+    let h = parseInt(p[0]), m = parseInt(p[1]), s = parseInt(p[2]||0);
+    if (isNaN(h) || isNaN(m)) return 0;
     if (pm && h < 12) h += 12;
-    return (h*3600) + (m*60) + s;
+    return (h*3600) + (m*60) + (isNaN(s) ? 0 : s);
 }
-
-/**
- * addMinutesToTimeStr
- * Takes a time string like "7:34:12" (24h or 12h) and adds `mins` minutes.
- * Returns a formatted 12h-style string "H:MM:SS" suitable for fmtZman().
- * The `isPM` flag tells us if the base time is PM (same logic as getSec).
- */
-function addMinutesToTimeStr(t, mins, isPM) {
-    if (!t || t.includes("--")) return "--:--";
-    let baseSec = getSec(t, isPM);
-    if (!baseSec) return "--:--";
-    let totalSec = baseSec + (mins * 60);
-    // Clamp to 24h just in case
-    totalSec = totalSec % 86400;
-    let hh = Math.floor(totalSec / 3600);
-    let mm = Math.floor((totalSec % 3600) / 60);
-    let ss = totalSec % 60;
-    // Convert back to 12h display
-    let h12 = hh % 12 || 12;
-    return `${h12}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+function getCandleSec(t) {
+    if (!t || t.toString().trim() === "") return 0;
+    let str = t.toString().trim();
+    let clean = str.replace(/(AM|PM|am|pm)/g,"").trim();
+    let p = clean.split(':');
+    let h = parseInt(p[0]), m = parseInt(p[1]), s = parseInt(p[2]||0);
+    if (isNaN(h) || isNaN(m)) return 0;
+    if (h < 12) h += 12;
+    return (h*3600) + (m*60) + (isNaN(s) ? 0 : s);
 }
-
 function getIso(d) {
     return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
 }
 function fit(el, vhStart) {
     if (!el) return;
-    let p = el.parentElement, vh = vhStart; el.style.fontSize = vh + "vh";
-    while (p.scrollHeight > p.clientHeight && vh > 1.0) { vh -= 0.1; el.style.fontSize = vh + "vh"; }
+    let p = el.parentElement, vh = vhStart;
+    el.style.fontSize = vh + "vh";
+    while (p.scrollWidth > p.clientWidth && vh > 1.0) {
+        vh -= 0.1;
+        el.style.fontSize = vh + "vh";
+    }
+}
+
+// ── DONATION BOX RENDERER ─────────────────────────────────────────
+function renderDonors(containerId, donors) {
+    let box = $(containerId);
+    if (!box) return;
+    if (!donors || donors.length === 0) {
+        box.innerHTML = '<div class="donation-empty">לא הוזן תוכן לחודש זה</div>';
+        return;
+    }
+    box.innerHTML = donors.map(d => `
+        <div class="donor-entry">
+            <div class="donor-dedication">${d.dedication || ""}</div>
+            ${d.donor ? `<div class="donor-name">&#x05DE;&#x05D5;&#x05E7;&#x05D3;&#x05E9; &#x05E2;&#x05F4;&#x05D9; ${d.donor}</div>` : ""}
+        </div>
+    `).join('');
+    box.querySelectorAll('.donor-dedication').forEach(el => fit(el, 5.0));
+    box.querySelectorAll('.donor-name').forEach(el => fit(el, 4.2));
 }
 
 // ── MOLAD PARSING ─────────────────────────────────────────────────
@@ -352,14 +454,14 @@ function parseMoladEntry(str) {
         let extraSec = Math.round(chalakim * 10 / 3);
         if (ampm === "pm" && hour !== 12) hour += 12;
         if (ampm === "am" && hour === 12) hour = 0;
-        let d = new Date(parts[1].trim() + " " + String(hour).padStart(2,"0") + ":" + String(min).padStart(2,"0") + ":00");
+        let d = new Date(parts[1].trim() + " " + String(hour).padStart(2,"0") + ":" + String(min).padStart(2,"00") + ":00");
         if (isNaN(d.getTime())) return null;
         d.setSeconds(extraSec);
         return d;
     } catch(e) { return null; }
 }
 
-// ── KIDDUSH LEVANA (RULE 8) ───────────────────────────────────────
+// ── KIDDUSH LEVANA ────────────────────────────────────────────────
 function getKiddushLevana(now, hebDate, isShab, holidayText, dayOfWeek) {
     if (isShab) return false;
     if (holidayText && holidayText.trim() !== "") return false;
@@ -372,7 +474,7 @@ function getKiddushLevana(now, hebDate, isShab, holidayText, dayOfWeek) {
     }
     if (!bestMolad) return false;
     let hrs = (nowMs - bestMolad.getTime()) / 3600000;
-    return (hrs >= 72 && hrs < 360);
+    return (hrs >= 168 && hrs < 360);
 }
 function isNineDays(hebDate) {
     if (!hebDate || !hebDate.includes("אב")) return false;
@@ -380,28 +482,6 @@ function isNineDays(hebDate) {
         if (hebDate.startsWith(d)) return true;
     }
     return false;
-}
-
-// ── RULE 10: SHABBOS IMAGE ────────────────────────────────────────
-function updateP1Image(isKodesh) {
-    if (isKodesh && !isShabbosImageActive) {
-        isShabbosImageActive = true;
-        if (p1RotateTimer) { clearInterval(p1RotateTimer); p1RotateTimer = null; }
-        if (shabbosPic) {
-            $('p4').style.opacity = 0;
-            setTimeout(() => {
-                $('p4').src = "https://drive.google.com/thumbnail?id=" + shabbosPic + "&sz=w1600";
-                $('p4').style.opacity = 1;
-            }, 800);
-        }
-    } else if (!isKodesh && isShabbosImageActive) {
-        isShabbosImageActive = false;
-        if (p4Images && p4Images.length > 0) {
-            if (p1RotateTimer) clearInterval(p1RotateTimer);
-            rotateP4();
-            p1RotateTimer = setInterval(rotateP4, 15000);
-        }
-    }
 }
 
 // ── CLOCK ─────────────────────────────────────────────────────────
@@ -424,13 +504,13 @@ function updateUI() {
     let now = new Date();
     let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
     let cSec = (h*3600) + (m*60) + s;
+    let dayW = now.getDay();
+
     let dToday = schedule[getIso(now)]; if (!dToday) return;
     let holidayText = dToday.holidayText || "";
 
-    // RULE 6: Stay awake for Shavuos
     let isHolidayStayAwake = holidayText.includes("שבועות");
 
-    // RULE 5: Sleep 1–5 AM
     if (!isHolidayStayAwake && h >= 1 && h < 5) {
         $('SLEEP_OVERLAY').style.display = 'block';
         $('SLEEP_CLOCK').innerText = (h%12||12) + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
@@ -441,52 +521,39 @@ function updateUI() {
         return;
     } else { $('SLEEP_OVERLAY').style.display = 'none'; }
 
-    // RULE 3: FLIP LOGIC — date and omer flip at SUNSET
-    // Apps Script z[] layout: z[0–8]=morning/afternoon, z[9]=Sunset(ColT), z[10]=מעריב(ColU), z[11]=רבינו תם(ColW)
-    let sunsetSecs = getSec(dToday.z[9], true);
+    const THREE_AM = 10800;
+    let dIso = (cSec < THREE_AM) ? getIso(new Date(now.getTime() - 86400000)) : getIso(now);
+    let dDate = schedule[dIso] || dToday;
 
-    // Date flips at sunset: before sunset → use today; at/after sunset → use tomorrow
-    let dIso = (cSec >= sunsetSecs) ? getIso(new Date(now.getTime() + 86400000)) : getIso(now);
-    let oIso = dIso; // Omer also flips at sunset
-
+    let rtSecs = getSec(dToday.z[10], true) + 120;
+    let oIso   = (cSec >= rtSecs - 1500) ? getIso(new Date(now.getTime() + 86400000)) : getIso(now);
     let dOmer  = schedule[oIso] || dToday;
-    let dDate  = schedule[dIso] || dToday;
 
     if (dIso !== lastDateIso) {
         lastDateIso = dIso;
         $('DAY_LABEL').innerText    = DAY_MAP[dDate.day] || dDate.day;
         $('DATE_LABEL').innerText   = dDate.heb;
         $('PARSHA_LABEL').innerText = dDate.parsha ? "פרשת " + dDate.parsha : "";
-
-        // Apps Script z[] layout:
-        //   z[0]  עלות השחר       z[1]  הנחת תפילין    z[2]  נץ החמה
-        //   z[3]  סוף זק"ש מג"א   z[4]  סוף זק"ש גר"א  z[5]  סוף זמן תפילה
-        //   z[6]  חצות היום       z[7]  מנחה גדולה      z[8]  פלג המנחה
-        //   z[9]  שקיעה (Col T)   z[10] רבינו תם (Col W)
-        //   מעריב = z[9] + 51 min, calculated client-side (no sheet column)
-
-        // Display rows r1–r9: z[0]–z[8] (AM/afternoon zmanim)
-        for (let i = 1; i <= 9; i++) {
-            $('z'+i).innerHTML = fmtZman(dDate.z[i-1]);
-        }
-        // r10 = שקיעת החמה → z[9]  (Col T)
-        $('z10').innerHTML = fmtZman(dDate.z[9]);
-        // r11 = מעריב → sunset (z[9]) + 51 minutes, calculated client-side
-        $('z11').innerHTML = fmtZman(addMinutesToTimeStr(dDate.z[9], 51, true));
-        // r12 = רבינו תם → z[10]  (Col W)
-        $('z12').innerHTML = fmtZman(dDate.z[10]);
+        fit($('DAY_LABEL'),    5.8);
+        fit($('DATE_LABEL'),   5.0);
+        fit($('PARSHA_LABEL'), 3.8);
+        for (let i = 1; i <= 10; i++) $('z'+i).innerHTML = fmtZman(dDate.z[i-1]);
+        $('z11').innerHTML = fmtZman(shiftTime(dDate.z[9],  51));
+        $('z12').innerHTML = fmtZman(shiftTime(dDate.z[10],  2));
     }
 
-    // Candle lighting row
     let candleTime = (dToday.candle || "").trim();
-    if (candleTime !== "" && now.getHours() !== 0) {
+    if (candleTime !== "" && h !== 0) {
         $('row_special').style.display = 'flex';
         $('z_spec_time').innerHTML = fmtZman(candleTime);
     } else {
         $('row_special').style.display = 'none';
     }
 
-    // RULE 7: Omer box
+    let alosToday = getSec(dToday.z[0], false);
+    let showMaariv = (dayW === 6 && cSec >= alosToday) || (dayW === 0 && cSec < 3600);
+    $('r11').style.display = showMaariv ? 'flex' : 'none';
+
     let moledText   = dDate.moled || "";
     let isMoledTime = (cSec >= 32400 && cSec <= 45000);
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
@@ -497,7 +564,7 @@ function updateUI() {
     } else if (holidayText !== "") {
         $('O2').innerText = holidayText; $('O_BECHINA').style.display = 'none'; fit($('O2'), 5.0);
     } else if (omerKey) {
-        $('O2').innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
+        $('O2').innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " לעומר";
         if (dOmer.bechina) { $('O_BECHINA').innerText = dOmer.bechina; $('O_BECHINA').style.display = 'block'; }
         else { $('O_BECHINA').style.display = 'none'; }
         fit($('O2'), 5.5); fit($('O_BECHINA'), 3.8);
@@ -505,36 +572,30 @@ function updateUI() {
         $('O2').innerText = summerMsg; $('O_BECHINA').style.display = 'none'; fit($('O2'), 5.5);
     }
 
-    // RULE 4: Status box
-    let hText  = (holidayText || "").trim();
-    let dayW   = now.getDay();
-    let candleSecs = getSec(candleTime, false);
-    if (candleSecs < 43200) candleSecs += 43200;
-
-    let isShab   = (dayW === 5 && cSec >= sunsetSecs) || (dayW === 6 && cSec < sunsetSecs);
+    let tR    = (dDate.tachReason || "").trim();
+    let hText = (holidayText || "").trim();
+    let candleSecs = getCandleSec(candleTime);
+    let isShab   = (dayW===5 && candleTime && cSec >= candleSecs) || (dayW===6 && cSec < rtSecs);
     let isYomTov = (dToday.yomtov === "Y");
-    let isKodesh = isShab || isYomTov;
-    let isMotz   = (dayW === 6 && cSec >= sunsetSecs);
+    let isMotz   = (dayW===6 && cSec >= rtSecs);
 
     let head = "", sub = "", cls = "gold-box";
     if (isShab) {
-        head = (moledText && isMoledTime) ? "שבת מברכים" : "שבת קודש";
+        head = "שבת קודש";
         sub  = hText;
+        cls  = (hText !== "") ? "teal-box" : "gold-box";
     } else if (hText !== "") {
-        head = hText;
-        sub  = isMotz ? "ותודיענו" : "";
-        cls  = "teal-box";
+        head = hText; sub = isMotz ? "ותודיענו" : tR; cls = "teal-box";
     } else if (isMotz) {
-        head = "מוצאי שבת";
-        sub  = "אתה חוננתנו";
+        head = "מוצאי שבת"; sub = "אתה חוננתנו";
+    } else if (tR !== "") {
+        head = "אין אומרים תחנון"; sub = tR; cls = "teal-box";
     } else {
-        head = "ותן ברכה"; sub = "";
+        head = "מוריד הטל"; sub = "ותן ברכה";
     }
 
-    // RULE 8: Kiddush Levana
     let showKL = getKiddushLevana(now, dDate.heb || "", isShab, hText, dayW);
     let klLine = showKL ? `<span id="status-kl">קידוש לבנה</span>` : "";
-
     let sH = `<div class="message-box ${cls}"><span id="status-head">${head}</span><span id="status-sub">${sub}</span>${klLine}</div>`;
     if (sH !== currentStatusHTML) {
         $('LEFT_MSG').innerHTML = sH; currentStatusHTML = sH;
@@ -542,24 +603,20 @@ function updateUI() {
         if (showKL) fit($('status-kl'), 3.0);
     }
 
-    // RULE 10: Shabbos image freeze
-    updateP1Image(isKodesh);
-
-    // ── Active zman highlight ─────────────────────────────────────
-    // Display order on screen vs z[] array:
-    //   r1–r9  → z[0]–z[8]  (AM → isPM false)
-    //   r10    → z[10]  שקיעה   (PM)
-    //   r11    → z[9]   מעריב   (PM)  — displayed AFTER sunset but comes after r10
-    //   r12    → z[11]  רבינו תם (PM)
-    // Note: מעריב (z[9]) is later in the evening than שקיעה (z[10]),
-    //       so chronological order on screen is correct: sunset → מעריב → רבינו תם.
-    let zT = [];
-    for (let i = 1; i <= 9; i++) zT.push({ id:'r'+i,  sec: getSec(dDate.z[i-1], false) });
-    zT.push({ id:'r10', sec: getSec(dDate.z[9],  true) });                      // שקיעה   (Col T)
-    zT.push({ id:'r11', sec: getSec(dDate.z[9],  true) + (51 * 60) });          // מעריב   (sunset + 51 min)
-    zT.push({ id:'r12', sec: getSec(dDate.z[10], true) });                      // רבינו תם (Col W)
-
-    // Filter out zero/missing times before finding next zman
+    let zT = [
+        { id:'r1',  sec: getSec(dDate.z[0],  false) },
+        { id:'r2',  sec: getSec(dDate.z[1],  false) },
+        { id:'r3',  sec: getSec(dDate.z[2],  false) },
+        { id:'r4',  sec: getSec(dDate.z[3],  false) },
+        { id:'r5',  sec: getSec(dDate.z[4],  false) },
+        { id:'r6',  sec: getSec(dDate.z[5],  false) },
+        { id:'r7',  sec: getSec(dDate.z[6],  true)  },
+        { id:'r8',  sec: getSec(dDate.z[7],  true)  },
+        { id:'r9',  sec: getSec(dDate.z[8],  true)  },
+        { id:'r10', sec: getSec(dDate.z[9],  true)  },
+        { id:'r11', sec: getSec(dDate.z[9],  true) + 51*60 },
+        { id:'r12', sec: getSec(dDate.z[10], true) + 120   },
+    ];
     let nIdx = zT.findIndex(z => z.sec > cSec && z.sec > 0);
     let tgtId = nIdx !== -1 ? zT[nIdx].id : null;
     if (tgtId !== currentlyHighlightedId) {
@@ -574,21 +631,44 @@ function loadData() {
     fetch(SCRIPT_URL + "?cb=" + new Date().getTime())
     .then(r => r.json())
     .then(d => {
-        if (!d) return;
-        schedule         = d.schedule;
-        defaultSummerMsg = d.defaultMsg || "";
-        shabbosPic       = d.shabbosPic || "";
-        if (d.p5) {
-            $('p4').src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1600";
-            $('p4').style.opacity = 1;
-        }
-        $('ANN').innerText = d.announcements || ""; fit($('ANN'), 4.8);
-        moladList = [];
-        if (d.moladList && Array.isArray(d.moladList)) {
-            for (let entry of d.moladList) { let p = parseMoladEntry(entry); if (p) moladList.push(p); }
-        }
+        if (!d || !d.schedule) return;
+        try { localStorage.setItem('chesed_cache', JSON.stringify(d)); } catch(e) {}
+        applyData(d);
     })
-    .catch(err => console.log("Data load error:", err));
+    .catch(err => {
+        console.log("Data load error (using cache):", err);
+        try { let c = localStorage.getItem('chesed_cache'); if (c) applyData(JSON.parse(c)); } catch(e) {}
+    });
+}
+
+function applyData(d) {
+    schedule         = d.schedule;
+    defaultSummerMsg = d.defaultMsg || "";
+
+    // Single static image — try p5 first, fall back to first image in p1List
+    if (d.p5) {
+        $('p1').src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1200";
+        $('p1').style.opacity = 1;
+    } else if (d.p1List && d.p1List.length > 0) {
+        $('p1').src = "https://drive.google.com/thumbnail?id=" + d.p1List[0] + "&sz=w1200";
+        $('p1').style.opacity = 1;
+    }
+
+    $('ANN').innerText = d.announcements || ""; fit($('ANN'), 4.8);
+
+    if (d.tefilaOverride) {
+        $('O2').innerText = d.tefilaOverride;
+        $('O_BECHINA').style.display = 'none';
+        fit($('O2'), 5.0);
+    }
+
+    renderDonors('NER_BODY',    d.nerDonors    || []);
+    renderDonors('COFFEE_BODY', d.coffeeDonors || []);
+
+    moladList = [];
+    if (d.moladList && Array.isArray(d.moladList)) {
+        for (let entry of d.moladList) { let p = parseMoladEntry(entry); if (p) moladList.push(p); }
+    }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
