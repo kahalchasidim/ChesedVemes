@@ -496,7 +496,7 @@ function renderDonors(containerId, titleId, donors, hebMonth) {
     box.innerHTML = donors.map(d => `
         <div class="donor-entry">
             <div class="donor-dedication">${d.dedication || ""}</div>
-            ${d.donor ? `<div class="donor-name">מוקדש ע"י ${d.donor}</div>` : ""}
+            ${d.donor ? `<div class="donor-name">נתנדב ע"י ${d.donor}</div>` : ""}
         </div>
     `).join('');
 
