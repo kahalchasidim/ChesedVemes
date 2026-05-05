@@ -159,15 +159,27 @@
   /* Rabbi's Corner box */
   .rabbi-box {
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
-    background: #080808; display: flex; align-items: center;
-    justify-content: center; text-align: center;
-    padding: 10px 14px; overflow: hidden;
+    background: #0d0a04; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .rabbi-header {
+    background: var(--gold); color: #000;
+    font-size: 2.0vh; font-weight: 800;
+    text-align: center; padding: 3px 8px;
+    border-radius: 8px 8px 0 0; flex-shrink: 0;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .rabbi-body {
+    flex: 1; display: flex; align-items: center;
+    justify-content: center; padding: 6px 12px;
+    overflow: hidden;
   }
   #RABBI {
     font-family: 'Frank Ruhl Libre', serif;
     font-size: 4.0vh; line-height: 1.4; color: #f0ece4;
+    font-style: italic;
     display: block; width: 100%; word-wrap: break-word;
-    direction: rtl;
+    direction: rtl; text-align: center;
   }
   .omer-box {
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
@@ -331,7 +343,10 @@
     <div class="middle-col">
       <div class="data-box"><span id="ANN">טוען מידע...</span></div>
       <div class="rabbi-box">
-        <span id="RABBI"></span>
+        <div class="rabbi-header">Daily Halachos</div>
+        <div class="rabbi-body">
+          <span id="RABBI"></span>
+        </div>
       </div>
     </div>
 
@@ -741,7 +756,10 @@ function updateUI() {
     // Rabbi's Corner — shows tefilaOverride, blank when empty
     if (EL['RABBI']) {
         EL['RABBI'].innerText = tefilaOverride || "";
-        if (tefilaOverride) fit(EL['RABBI'], 4.0);
+        if (tefilaOverride) {
+            const rabbiBody = EL['RABBI'].parentElement;
+            fitInBox(EL['RABBI'], rabbiBody, 4.0);
+        }
     }
 
     let tR    = (dDate.tachReason || "").trim();
