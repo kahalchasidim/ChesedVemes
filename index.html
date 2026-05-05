@@ -7,15 +7,15 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Suez+One&display=swap');
   :root { --gold: #c29d6d; }
- 
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
   body {
     background: #000; color: #fff;
     font-family: 'Suez One', 'Arial Hebrew', serif;
     width: 100vw; height: 100vh; overflow: hidden;
   }
-  
+
   .master-frame {
     height: 100vh; width: 100vw;
     display: flex; flex-direction: column;
@@ -156,6 +156,19 @@
     font-weight: 800; font-size: 4.8vh; line-height: 1.1;
     display: block; width: 100%; word-wrap: break-word;
   }
+  /* Rabbi's Corner box */
+  .rabbi-box {
+    flex: 1; border: 2px solid var(--gold); border-radius: 10px;
+    background: #080808; display: flex; align-items: center;
+    justify-content: center; text-align: center;
+    padding: 10px 14px; overflow: hidden;
+  }
+  #RABBI {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 4.0vh; line-height: 1.4; color: #f0ece4;
+    display: block; width: 100%; word-wrap: break-word;
+    direction: rtl;
+  }
   .omer-box {
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
     background: #001f1a; display: flex; flex-direction: column;
@@ -167,10 +180,6 @@
     width: 96%; display: block; margin: 0 auto;
     word-wrap: break-word; overflow: hidden;
   }
-  #O_BECHINA {
-    font-size: 3.5vh; color: #fff; border-top: 1px solid #444;
-    padding-top: 2px; margin-top: 4px; width: 90%; overflow: hidden;
-  }
 
   /* ── DONATION COLUMN — 22vw ──────────────────────────────────── */
   .donation-col {
@@ -178,8 +187,12 @@
     display: flex; flex-direction: column;
     gap: 8px; overflow: hidden;
   }
+  /* Omer box in donation column — half size of donor boxes */
+  .donation-col .omer-box {
+    flex: 1; min-height: 0; overflow: hidden;
+  }
   .donation-box {
-    flex: 1; border: 2px solid var(--gold); border-radius: 10px;
+    flex: 2; border: 2px solid var(--gold); border-radius: 10px;
     background: #080500; display: flex; flex-direction: column;
     overflow: hidden;
   }
@@ -289,6 +302,24 @@
         <span class="z-label">רבינו תם</span>
         <span class="z-time" id="z12">--:--</span>
       </div>
+      <!-- Friday only rows -->
+      <div class="z-row" id="r_fri_mincha" style="display:none; background:#1a1000;">
+        <span class="z-label">מנחה ערב שבת</span>
+        <span class="z-time" id="z_fri_mincha">7:00</span>
+      </div>
+      <!-- Saturday only rows -->
+      <div class="z-row" id="r_shab_mincha" style="display:none;">
+        <span class="z-label">מנחה</span>
+        <span class="z-time" id="z_shab_mincha">--:--</span>
+      </div>
+      <div class="z-row" id="r_shiur" style="display:none;">
+        <span class="z-label">שיעור מן הרב</span>
+        <span class="z-time" id="z_shiur">--:--</span>
+      </div>
+      <div class="z-row" id="r_avos" style="display:none;">
+        <span class="z-label">פרקי אבות</span>
+        <span class="z-time" id="z_avos">--:--</span>
+      </div>
     </div>
 
     <!-- 2. PORTRAIT IMAGE — single static image, no rotation -->
@@ -299,14 +330,17 @@
     <!-- 3. MIDDLE -->
     <div class="middle-col">
       <div class="data-box"><span id="ANN">טוען מידע...</span></div>
-      <div class="omer-box" id="OMER">
-        <span id="O2">טוען...</span>
-        <div id="O_BECHINA"></div>
+      <div class="rabbi-box">
+        <span id="RABBI"></span>
       </div>
     </div>
 
-    <!-- 4. DONATIONS — 28vw -->
+    <!-- 4. DONATIONS + OMER — 22vw -->
     <div class="donation-col">
+      <!-- Omer box — flex:1 (half size of donor boxes) -->
+      <div class="omer-box" id="OMER">
+        <span id="O2">טוען...</span>
+      </div>
       <div class="donation-box">
         <div class="donation-title" id="NER_TITLE">נר למאור</div>
         <div class="donation-body" id="NER_BODY">
@@ -339,16 +373,20 @@ const $ = id => document.getElementById(id);
 const EL = {};
 function initEls() {
     ['DAY_LABEL','DATE_LABEL','PARSHA_LABEL','CLOCK','LEFT_MSG',
-     'ANN','O2','O_BECHINA','SLEEP_OVERLAY','SLEEP_CLOCK',
+     'ANN','O2','SLEEP_OVERLAY','SLEEP_CLOCK',
      'ENG_DATE','WEATHER','row_special','z_spec_time',
      'r11','NER_BODY','COFFEE_BODY','NER_TITLE','COFFEE_TITLE',
-     'p1','OMER'
+     'p1','OMER','RABBI',
+     'r_fri_mincha','z_fri_mincha',
+     'r_shab_mincha','z_shab_mincha',
+     'r_shiur','z_shiur',
+     'r_avos','z_avos'
     ].forEach(id => { EL[id] = document.getElementById(id); });
     for (let i = 1; i <= 12; i++) EL['z'+i] = document.getElementById('z'+i);
     for (let i = 1; i <= 12; i++) EL['r'+i] = document.getElementById('r'+i);
 }
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhzQ7k8gWtgFvfVqrrC0cRf_8V-5TiUshJhBSohxYOzpgAWpoE2gWoRIzFmSOvKZgzdg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXI0Ka0lFLTgfnynx0uLOkaxSdSi_rUWrgE-_CMRNLYZNCtAlAupo7oKT66Q-E1ZNOFA/exec";
 
 var defaultSummerMsg = "", shabbosPic = "", tefilaOverride = "";
 var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
@@ -635,24 +673,65 @@ function updateUI() {
     let showMaariv = (dayW === 6 && cSec >= alosToday) || (dayW === 0 && cSec < 3600);
     EL['r11'].style.display = showMaariv ? 'flex' : 'none';
 
+    // ── SHABBOS ZMANIM ────────────────────────────────────────────
+    // New rows shown only on Friday/Saturday
+    let sunsetSec  = getSec(dDate.z[9], true); // שקיעה in seconds
+    let isFriday   = (dayW === 5);
+    let isSaturday = (dayW === 6);
+
+    // מנחה ערב שבת — Friday only, 7:00 PM fixed, Pesach→Sukkos
+    // Season: civil month 4 (Apr) through 9 (Sep) approximately
+    let civMon = now.getMonth() + 1;
+    let isMinchaFriSeason = (civMon >= 4 && civMon <= 9);
+    EL['r_fri_mincha'].style.display = (isFriday && isMinchaFriSeason) ? 'flex' : 'none';
+
+    // מנחה שבת — שקיעה - 28 min, Saturday only
+    if (isSaturday && sunsetSec > 0) {
+        EL['z_shab_mincha'].innerHTML = fmtZman(shiftTime(dDate.z[9], -28));
+        EL['r_shab_mincha'].style.display = 'flex';
+    } else {
+        EL['r_shab_mincha'].style.display = 'none';
+    }
+
+    // שיעור מן הרב — שקיעה - 88 min, Saturday only
+    if (isSaturday && sunsetSec > 0) {
+        EL['z_shiur'].innerHTML = fmtZman(shiftTime(dDate.z[9], -88));
+        EL['r_shiur'].style.display = 'flex';
+    } else {
+        EL['r_shiur'].style.display = 'none';
+    }
+
+    // פרקי אבות — 7:00 PM fixed, Saturday only, 15 Nisan → 1 Tishrei
+    // Season: civil month 4 (Apr) through 9 (Sep)
+    let isPirkeySeason = (civMon >= 4 && civMon <= 9);
+    if (isSaturday && isPirkeySeason) {
+        EL['z_avos'].innerHTML = fmtZman("7:00:00");
+        EL['r_avos'].style.display = 'flex';
+    } else {
+        EL['r_avos'].style.display = 'none';
+    }
+
     let moledText   = dDate.moled || "";
     let isMoledTime = (cSec >= 28800 && cSec <= 43200); // 8:00 AM – 12:00 PM
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
-    // Omer box priority: Molad → Omer → Col F / tefilaOverride
-    // Col D (holidayText) goes to STATUS BOX only — never shown here
+    // Omer box — Molad → Omer → tefilaOverride → summer msg (no Bechina)
     if (isMoledTime && moledText !== "") {
-        EL['O2'].innerText = moledText; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 4.2);
+        EL['O2'].innerText = moledText; fit(EL['O2'], 3.2);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
-        if (dOmer.bechina) { EL['O_BECHINA'].innerText = dOmer.bechina; EL['O_BECHINA'].style.display = 'block'; }
-        else { EL['O_BECHINA'].style.display = 'none'; }
-        fit(EL['O2'], 5.5); fit(EL['O_BECHINA'], 3.8);
+        fit(EL['O2'], 3.8);
     } else if (tefilaOverride) {
-        EL['O2'].innerText = tefilaOverride; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.0);
+        EL['O2'].innerText = tefilaOverride; fit(EL['O2'], 3.5);
     } else {
-        EL['O2'].innerText = summerMsg; EL['O_BECHINA'].style.display = 'none'; fit(EL['O2'], 5.5);
+        EL['O2'].innerText = summerMsg; fit(EL['O2'], 3.8);
+    }
+
+    // Rabbi's Corner — shows tefilaOverride, blank when empty
+    if (EL['RABBI']) {
+        EL['RABBI'].innerText = tefilaOverride || "";
+        if (tefilaOverride) fit(EL['RABBI'], 4.0);
     }
 
     let tR    = (dDate.tachReason || "").trim();
