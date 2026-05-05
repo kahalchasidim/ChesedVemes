@@ -386,7 +386,7 @@ function initEls() {
     for (let i = 1; i <= 12; i++) EL['r'+i] = document.getElementById('r'+i);
 }
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhzQ7k8gWtgFvfVqrrC0cRf_8V-5TiUshJhBSohxYOzpgAWpoE2gWoRIzFmSOvKZgzdg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhzQ7k8gWtgFvfVqrrC0cRf_8V-5TiUshJhBSohxYOzpgAWpoE2gWoRIzFmSOvKZgzdg";
 
 var defaultSummerMsg = "", shabbosPic = "", tefilaOverride = "";
 var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
@@ -490,6 +490,16 @@ function fit(el, vhStart) {
     el.style.fontSize = vh + "vh";
     while ((p.scrollWidth > p.clientWidth || p.scrollHeight > p.clientHeight) && vh > 1.0) {
         vh -= 0.1;
+        el.style.fontSize = vh + "vh";
+    }
+}
+// fitInBox: same as fit but uses explicit container for overflow check
+function fitInBox(el, container, vhStart) {
+    if (!el || !container) return;
+    let vh = vhStart;
+    el.style.fontSize = vh + "vh";
+    while (container.scrollHeight > container.clientHeight && vh > 1.0) {
+        vh = Math.max(1.0, vh - 0.15);
         el.style.fontSize = vh + "vh";
     }
 }
@@ -718,14 +728,14 @@ function updateUI() {
 
     // Omer box — Molad → Omer → tefilaOverride → summer msg (no Bechina)
     if (isMoledTime && moledText !== "") {
-        EL['O2'].innerText = moledText; fit(EL['O2'], 3.2);
+        EL['O2'].innerText = moledText; fitInBox(EL['O2'], EL['OMER'], 3.2);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
-        fit(EL['O2'], 3.8);
+        fitInBox(EL['O2'], EL['OMER'], 3.8);
     } else if (tefilaOverride) {
-        EL['O2'].innerText = tefilaOverride; fit(EL['O2'], 3.5);
+        EL['O2'].innerText = tefilaOverride; fitInBox(EL['O2'], EL['OMER'], 3.5);
     } else {
-        EL['O2'].innerText = summerMsg; fit(EL['O2'], 3.8);
+        EL['O2'].innerText = summerMsg; fitInBox(EL['O2'], EL['OMER'], 3.8);
     }
 
     // Rabbi's Corner — shows tefilaOverride, blank when empty
