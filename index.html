@@ -290,48 +290,8 @@
 
   <div class="main-body">
 
-    <!-- 1. ZEMANIM -->
+    <!-- 1. ZEMANIM — rebuilt dynamically and sorted by time -->
     <div class="zemanim-col" id="ZMANIM_LIST">
-      <div class="z-row" id="r1"><span class="z-label">עלות השחר</span><span class="z-time" id="z1">--:--</span></div>
-      <div class="z-row" id="r2"><span class="z-label">הנחת תפילין</span><span class="z-time" id="z2">--:--</span></div>
-      <div class="z-row" id="r3"><span class="z-label">נץ החמה</span><span class="z-time" id="z3">--:--</span></div>
-      <div class="z-row" id="r4"><span class="z-label">סוף זק"ש מג"א</span><span class="z-time" id="z4">--:--</span></div>
-      <div class="z-row" id="r5"><span class="z-label">סוף זק"ש גר"א</span><span class="z-time" id="z5">--:--</span></div>
-      <div class="z-row" id="r6"><span class="z-label">סוף זמן תפילה</span><span class="z-time" id="z6">--:--</span></div>
-      <div class="z-row" id="r7"><span class="z-label">חצות היום</span><span class="z-time" id="z7">--:--</span></div>
-      <div class="z-row" id="r8"><span class="z-label">מנחה גדולה</span><span class="z-time" id="z8">--:--</span></div>
-      <div class="z-row" id="r9"><span class="z-label">פלג המנחה</span><span class="z-time" id="z9">--:--</span></div>
-      <div class="z-row" id="row_special" style="display:none;">
-        <span class="z-label">הדלקת נרות</span>
-        <span class="z-time" id="z_spec_time">--:--</span>
-      </div>
-      <div class="z-row" id="r10"><span class="z-label">שקיעת החמה</span><span class="z-time" id="z10">--:--</span></div>
-      <div class="z-row" id="r11">
-        <span class="z-label">מעריב</span>
-        <span class="z-time" id="z11">--:--</span>
-      </div>
-      <div class="z-row" id="r12">
-        <span class="z-label">רבינו תם</span>
-        <span class="z-time" id="z12">--:--</span>
-      </div>
-      <!-- Friday only rows -->
-      <div class="z-row" id="r_fri_mincha" style="display:none; background:#1a1000;">
-        <span class="z-label">מנחה ערב שבת</span>
-        <span class="z-time" id="z_fri_mincha">7:00</span>
-      </div>
-      <!-- Saturday only rows -->
-      <div class="z-row" id="r_shab_mincha" style="display:none;">
-        <span class="z-label">מנחה</span>
-        <span class="z-time" id="z_shab_mincha">--:--</span>
-      </div>
-      <div class="z-row" id="r_shiur" style="display:none;">
-        <span class="z-label">שיעור מן הרב</span>
-        <span class="z-time" id="z_shiur">--:--</span>
-      </div>
-      <div class="z-row" id="r_avos" style="display:none;">
-        <span class="z-label">פרקי אבות</span>
-        <span class="z-time" id="z_avos">--:--</span>
-      </div>
     </div>
 
     <!-- 2. PORTRAIT IMAGE — single static image, no rotation -->
@@ -389,25 +349,17 @@ const EL = {};
 function initEls() {
     ['DAY_LABEL','DATE_LABEL','PARSHA_LABEL','CLOCK','LEFT_MSG',
      'ANN','O2','SLEEP_OVERLAY','SLEEP_CLOCK',
-     'ENG_DATE','WEATHER','row_special','z_spec_time',
-     'r11','NER_BODY','COFFEE_BODY','NER_TITLE','COFFEE_TITLE',
-     'p1','OMER','RABBI',
-     'r_fri_mincha','z_fri_mincha',
-     'r_shab_mincha','z_shab_mincha',
-     'r_shiur','z_shiur',
-     'r_avos','z_avos'
+     'ENG_DATE','WEATHER','ZMANIM_LIST',
+     'NER_BODY','COFFEE_BODY','NER_TITLE','COFFEE_TITLE',
+     'p1','OMER','RABBI'
     ].forEach(id => { EL[id] = document.getElementById(id); });
-    for (let i = 1; i <= 12; i++) EL['z'+i] = document.getElementById('z'+i);
-    for (let i = 1; i <= 12; i++) EL['r'+i] = document.getElementById('r'+i);
 }
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhzQ7k8gWtgFvfVqrrC0cRf_8V-5TiUshJhBSohxYOzpgAWpoE2gWoRIzFmSOvKZgzdg/exec";
 
 var defaultSummerMsg = "", shabbosPic = "", tefilaOverride = "";
-var schedule = {}, moladList = [], lastDateIso = "", currentStatusHTML = "";
+var schedule = {}, moladList = [], lastDateIso = "", lastZmanim = "", currentStatusHTML = "";
 var currentlyHighlightedId = null;
-
-const allZRows = document.querySelectorAll('.z-row');
 
 const OMER_STRINGS = {
   1:"יום אחד", 2:"שני ימים", 3:"שלשה ימים", 4:"ארבעה ימים", 5:"חמשה ימים",
@@ -440,7 +392,7 @@ const OMER_STRINGS = {
 
 const DAY_MAP = {
   "Sun":"יום ראשון","Mon":"יום שני","Tue":"יום שלישי","Wed":"יום רביעי",
-  "Thu":"יום חמישי","Fri":"ערב ש\"ק","Sha":"שבת קודש","Sat":"שבת קודש"
+  "Thu":"יום חמישי","Fri":"ערב שבת קודש","Sha":"שבת קודש","Sat":"שבת קודש"
 };
 
 // ── HELPERS ───────────────────────────────────────────────────────
@@ -681,59 +633,94 @@ function updateUI() {
         EL['PARSHA_LABEL'].innerText = dDate.parsha ? "פרשת " + dDate.parsha : "";
         fit(EL['DATE_LABEL'],   5.0);
         fit(EL['PARSHA_LABEL'], 3.8);
-        for (let i = 1; i <= 10; i++) EL['z'+i].innerHTML = fmtZman(dDate.z[i-1]);
-        EL['z11'].innerHTML = fmtZman(shiftTime(dDate.z[9],  51));
-        EL['z12'].innerHTML = fmtZman(shiftTime(dDate.z[10],  2));
     }
 
+    // ── DYNAMIC SORTED ZMANIM ─────────────────────────────────────
+    // Build list of all visible zmanim, sort by time, render into ZMANIM_LIST
     let candleTime = (dToday.candle || "").trim();
-    if (candleTime !== "" && h !== 0) {
-        EL['row_special'].style.display = 'flex';
-        EL['z_spec_time'].innerHTML = fmtZman(candleTime);
-    } else {
-        EL['row_special'].style.display = 'none';
-    }
-
-    let alosToday = getSec(dToday.z[0], false);
-    let showMaariv = (dayW === 6 && cSec >= alosToday) || (dayW === 0 && cSec < 3600);
-    EL['r11'].style.display = showMaariv ? 'flex' : 'none';
-
-    // ── SHABBOS ZMANIM ────────────────────────────────────────────
-    // New rows shown only on Friday/Saturday
-    let sunsetSec  = getSec(dDate.z[9], true); // שקיעה in seconds
+    let civMon     = now.getMonth() + 1;
     let isFriday   = (dayW === 5);
     let isSaturday = (dayW === 6);
-
-    // מנחה ערב שבת — Friday only, 7:00 PM fixed, Pesach→Sukkos
-    // Season: civil month 4 (Apr) through 9 (Sep) approximately
-    let civMon = now.getMonth() + 1;
     let isMinchaFriSeason = (civMon >= 4 && civMon <= 9);
-    EL['r_fri_mincha'].style.display = (isFriday && isMinchaFriSeason) ? 'flex' : 'none';
+    let isPirkeySeason    = (civMon >= 4 && civMon <= 9);
 
-    // מנחה שבת — שקיעה - 28 min, Saturday only
-    if (isSaturday && sunsetSec > 0) {
-        EL['z_shab_mincha'].innerHTML = fmtZman(shiftTime(dDate.z[9], -28));
-        EL['r_shab_mincha'].style.display = 'flex';
-    } else {
-        EL['r_shab_mincha'].style.display = 'none';
+    // Each entry: { id, label, timeStr, secVal, style }
+    let zRows = [
+        { id:'r1',  label:'עלות השחר',       timeStr: dDate.z[0], secVal: getSec(dDate.z[0], false) },
+        { id:'r2',  label:'הנחת תפילין',      timeStr: dDate.z[1], secVal: getSec(dDate.z[1], false) },
+        { id:'r3',  label:'נץ החמה',          timeStr: dDate.z[2], secVal: getSec(dDate.z[2], false) },
+        { id:'r4',  label:'סוף זק"ש מג"א',   timeStr: dDate.z[3], secVal: getSec(dDate.z[3], false) },
+        { id:'r5',  label:'סוף זק"ש גר"א',   timeStr: dDate.z[4], secVal: getSec(dDate.z[4], false) },
+        { id:'r6',  label:'סוף זמן תפילה',   timeStr: dDate.z[5], secVal: getSec(dDate.z[5], false) },
+        { id:'r7',  label:'חצות היום',        timeStr: dDate.z[6], secVal: getSec(dDate.z[6], true)  },
+        { id:'r8',  label:'מנחה גדולה',       timeStr: dDate.z[7], secVal: getSec(dDate.z[7], true)  },
+        { id:'r9',  label:'פלג המנחה',        timeStr: dDate.z[8], secVal: getSec(dDate.z[8], true)  },
+    ];
+
+    // Candle lighting — Friday/Yom Tov only
+    if (candleTime !== "" && h !== 0) {
+        zRows.push({ id:'row_special', label:'הדלקת נרות', timeStr: candleTime,
+            secVal: getCandleSec(candleTime), style:'background:#004d40; color:#00bfa5;',
+            labelStyle:'color:#00bfa5;', timeStyle:'color:#ffffff;' });
     }
 
-    // שיעור מן הרב — שקיעה - 88 min, Saturday only
-    if (isSaturday && sunsetSec > 0) {
-        EL['z_shiur'].innerHTML = fmtZman(shiftTime(dDate.z[9], -88));
-        EL['r_shiur'].style.display = 'flex';
-    } else {
-        EL['r_shiur'].style.display = 'none';
+    // שקיעה
+    zRows.push({ id:'r10', label:'שקיעת החמה', timeStr: dDate.z[9], secVal: getSec(dDate.z[9], true) });
+
+    // Friday: מנחה ערב שבת
+    if (isFriday && isMinchaFriSeason) {
+        zRows.push({ id:'r_fri_mincha', label:'מנחה ערב שבת', timeStr:'7:00:00',
+            secVal: 19*3600, style:'background:#1a1000;' });
     }
 
-    // פרקי אבות — 7:00 PM fixed, Saturday only, 15 Nisan → 1 Tishrei
-    // Season: civil month 4 (Apr) through 9 (Sep)
-    let isPirkeySeason = (civMon >= 4 && civMon <= 9);
-    if (isSaturday && isPirkeySeason) {
-        EL['z_avos'].innerHTML = fmtZman("7:00:00");
-        EL['r_avos'].style.display = 'flex';
-    } else {
-        EL['r_avos'].style.display = 'none';
+    // Saturday: מנחה, שיעור מן הרב, פרקי אבות
+    if (isSaturday) {
+        let shabMinchaTime = shiftTime(dDate.z[9], -28);
+        let shiurTime      = shiftTime(dDate.z[9], -88);
+        zRows.push({ id:'r_shab_mincha', label:'מנחה',           timeStr: shabMinchaTime, secVal: getSec(dDate.z[9], true) - 28*60 });
+        zRows.push({ id:'r_shiur',       label:'שיעור מן הרב',   timeStr: shiurTime,      secVal: getSec(dDate.z[9], true) - 88*60 });
+        if (isPirkeySeason) {
+            zRows.push({ id:'r_avos', label:'פרקי אבות', timeStr:'7:00:00', secVal: 19*3600 });
+        }
+    }
+
+    // מעריב — show all of Shabbos day (from Alos Sat through 1AM Sun)
+    let alosToday  = getSec(dToday.z[0], false);
+    let showMaariv = (dayW === 6) || (dayW === 0 && cSec < 3600);
+    if (showMaariv) {
+        let maarTime = shiftTime(dDate.z[9], 51);
+        zRows.push({ id:'r11', label:'מעריב', timeStr: maarTime, secVal: getSec(dDate.z[9], true) + 51*60 });
+    }
+
+    // רבינו תם — no pin, sorts naturally (it's always the latest time)
+    let rtTime = shiftTime(dDate.z[10], 2);
+    zRows.push({ id:'r12', label:'רבינו תם', timeStr: rtTime, secVal: getSec(dDate.z[10], true) + 120,
+        style:'background:#0a0800;' });
+
+    // Sort all by time
+    zRows.sort((a, b) => a.secVal - b.secVal);
+
+    // Find next upcoming zman for highlight
+    let nextId = null;
+    for (let z of zRows) {
+        if (z.secVal > cSec && z.secVal > 0) { nextId = z.id; break; }
+    }
+
+    // Render — only rebuild DOM if day changed or highlight changed
+    if (dIso !== lastZmanim || nextId !== currentlyHighlightedId) {
+        lastZmanim = dIso + '_' + nextId;
+        EL['ZMANIM_LIST'].innerHTML = zRows.map(z => {
+            let isActive  = (z.id === nextId);
+            let rowStyle  = isActive ? '' : (z.style || '');
+            let rowClass  = isActive ? 'z-row active-zman' : 'z-row';
+            let lblStyle  = isActive ? '' : (z.labelStyle || '');
+            let timeStyle = isActive ? '' : (z.timeStyle || '');
+            return `<div class="${rowClass}" id="${z.id}" style="${rowStyle}">
+                <span class="z-label" style="${lblStyle}">${z.label}</span>
+                <span class="z-time" style="${timeStyle}">${fmtZman(z.timeStr)}</span>
+            </div>`;
+        }).join('');
+        currentlyHighlightedId = nextId;
     }
 
     let moledText   = dDate.moled || "";
@@ -829,13 +816,12 @@ function updateUI() {
     if (isPesach1 && pastChatzot) isGeshem = false;
 
     let head = "", sub = "", cls = "gold-box";
+    let isPastRT  = (cSec >= rtSecs);
+    let isTishaBav = hText.includes("תשעה באב");
+
     if (isShab) {
-        // On Shabbos, Col D may contain special text (שבת מברכים סיון, שבת הגדול, etc.)
-        // If Col D has text → it becomes the head (teal). Sub = Rosh Chodesh day if מברכים.
         if (hText !== "") {
-            head = hText;
-            cls  = "teal-box";
-            // If שבת מברכים: look ahead up to 8 days for ראש חודש entries
+            head = hText; cls = "teal-box";
             if (hText.includes("מברכים")) {
                 let rcDays = [];
                 for (let ahead = 1; ahead <= 8; ahead++) {
@@ -847,21 +833,28 @@ function updateUI() {
                     }
                 }
                 sub = rcDays.join(" ו");
-            } else {
-                sub = "";
-            }
+            } else { sub = ""; }
         } else {
-            head = "שבת קודש";
-            cls  = "gold-box";
-            sub  = "";
+            head = "שבת קודש"; cls = "gold-box"; sub = "";
         }
-    } else if (hText !== "") {
-        head = hText; sub = isMotz ? "ותודיענו" : tR; cls = "teal-box";
     } else if (isMotz) {
-        head = "מוצאי שבת"; sub = "אתה חוננתנו";
-    } else if (tR !== "") {
+        // Motzei Shabbos — Col D text shows with ותודיענו, otherwise אתה חוננתנו
+        if (hText !== "") {
+            head = hText; sub = "ותודיענו"; cls = "teal-box";
+        } else {
+            head = "מוצאי שבת"; sub = "אתה חוננתנו";
+        }
+    } else if (isYomTov && isPastRT) {
+        // Yom Tov just ended after RT → מוצאי יום טוב
+        head = "מוצאי יום טוב"; sub = hText || ""; cls = "teal-box";
+    } else if (hText !== "" && !isPastRT) {
+        // Weekday special day (Rosh Chodesh, Lag Baomer etc.) — only before RT
+        head = hText; sub = tR; cls = "teal-box";
+    } else if (tR !== "" && !isPastRT) {
+        // Tachanun override — only before RT
         head = "אין אומרים תחנון"; sub = tR; cls = "teal-box";
     } else {
+        // Default — after RT on special days, or regular weekday
         head = isTalUmatar ? "ותן טל ומטר" : "ותן ברכה";
         sub  = isGeshem    ? "מוריד הגשם"  : "";
     }
@@ -878,27 +871,7 @@ function updateUI() {
         if (showKL) fit(document.getElementById('status-kl'), 3.0);
     }
 
-    let zT = [
-        { id:'r1',  sec: getSec(dDate.z[0],  false) },
-        { id:'r2',  sec: getSec(dDate.z[1],  false) },
-        { id:'r3',  sec: getSec(dDate.z[2],  false) },
-        { id:'r4',  sec: getSec(dDate.z[3],  false) },
-        { id:'r5',  sec: getSec(dDate.z[4],  false) },
-        { id:'r6',  sec: getSec(dDate.z[5],  false) },
-        { id:'r7',  sec: getSec(dDate.z[6],  true)  },
-        { id:'r8',  sec: getSec(dDate.z[7],  true)  },
-        { id:'r9',  sec: getSec(dDate.z[8],  true)  },
-        { id:'r10', sec: getSec(dDate.z[9],  true)  },
-        { id:'r11', sec: getSec(dDate.z[9],  true) + 51*60 },
-        { id:'r12', sec: getSec(dDate.z[10], true) + 120   },
-    ];
-    let nIdx = zT.findIndex(z => z.sec > cSec && z.sec > 0);
-    let tgtId = nIdx !== -1 ? zT[nIdx].id : null;
-    if (tgtId !== currentlyHighlightedId) {
-        allZRows.forEach(r => r.classList.remove('active-zman'));
-        if (tgtId && EL[tgtId]) EL[tgtId].classList.add('active-zman');
-        currentlyHighlightedId = tgtId;
-    }
+    // Zmanim highlight handled inside the dynamic zmanim renderer above
 }
 
 // ── DATA LOAD ─────────────────────────────────────────────────────
@@ -960,3 +933,4 @@ setInterval(updateUI, 1000); updateUI();
 </script>
 </body>
 </html>
+
