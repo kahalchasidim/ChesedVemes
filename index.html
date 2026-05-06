@@ -667,10 +667,12 @@ function updateUI() {
     // שקיעה
     zRows.push({ id:'r10', label:'שקיעת החמה', timeStr: dDate.z[9], secVal: getSec(dDate.z[9], true) });
 
-    // Friday: מנחה ערב שבת
+    // Friday: מנחה וקבלת שבת + זרע שמשון
     if (isFriday && isMinchaFriSeason) {
-        zRows.push({ id:'r_fri_mincha', label:'מנחה ערב שבת', timeStr:'7:00:00',
+        zRows.push({ id:'r_fri_mincha', label:'מנחה וקבלת שבת', timeStr:'7:00:00',
             secVal: 19*3600, style:'background:#1a1000;' });
+        zRows.push({ id:'r_zera', label:'זרע שמשון', timeStr:'6:40:00',
+            secVal: 18*3600 + 40*60, style:'background:#1a1000;' });
     }
 
     // Saturday: מנחה, שיעור מן הרב, פרקי אבות
