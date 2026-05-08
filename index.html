@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <title>קהל חסד ואמת – Master Board</title>
-<!-- Version 1.9 – May 2026 | Based on Bayswater Protocol v2.9 -->
+<!-- Version 2.9 – May 2026 | Cream color scheme -->
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Frank+Ruhl+Libre:wght@400;700;900&family=Suez+One&display=swap');
-  :root { --gold: #c29d6d; }
+  :root { --gold: #558B7D; --gold-dark: #3D6B60; --bg: #F1F8F6; --box: #C7DDD8; --box2: #A8D5CC; --text: #3E5C54; --dim: #6B8680; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #000; color: #fff;
+    background: var(--bg); color: var(--text);
     font-family: 'Suez One', 'Arial Hebrew', serif;
     width: 100vw; height: 100vh; overflow: hidden;
   }
@@ -28,19 +28,19 @@
   .branding-bar {
     height: 5.5vh; display: flex; align-items: center;
     justify-content: center; position: relative;
-    border-bottom: 1px solid #333; overflow: hidden;
+    border-bottom: 1px solid #c29d6d; overflow: hidden;
   }
-  .branding-shul { font-size: 4.2vh; color: #FDEFD4; font-weight: bold; }
+  .branding-shul { font-size: 4.2vh; color: var(--text); font-weight: bold; }
   #ENG_SIDE {
     position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-    font-size: 2.5vh; color: var(--gold);
+    font-size: 2.5vh; color: var(--gold-dark);
     font-family: 'Assistant', 'Arial Hebrew', sans-serif;
     direction: ltr; font-weight: 700; white-space: nowrap;
   }
-  #WEATHER { color: #ccc; }
+  #WEATHER { color: var(--dim); }
   #BSD {
     position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
-    font-size: 2.8vh; color: var(--gold);
+    font-size: 2.8vh; color: var(--gold-dark);
     font-family: 'Assistant', 'Arial Hebrew', sans-serif; font-weight: 700;
   }
 
@@ -49,43 +49,46 @@
     height: 18vh; display: flex;
     align-items: center; justify-content: space-between;
     border: 2px solid var(--gold); border-radius: 12px;
-    background: #050505; padding: 0; overflow: hidden;
+    background: var(--box); padding: 0; overflow: hidden;
   }
   .status-stack {
     flex: 0 0 24vw; height: 100%;
     display: flex; flex-direction: column;
     justify-content: center; align-items: center;
-    background: #050505; overflow: hidden;
+    background: var(--box); overflow: hidden;
     border-radius: 10px 0 0 10px;
     padding: 4px 8px;
   }
   #DAY_LABEL {
     font-size: 5.8vh; line-height: 0.95; padding: 0; margin: 0;
     width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
+    color: var(--text);
   }
   #DATE_LABEL {
     font-size: 5.0vh; line-height: 0.95; padding: 0; margin: 0;
     width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
+    color: var(--gold-dark);
   }
   #PARSHA_LABEL {
     font-size: 3.8vh; line-height: 1.0; padding: 0; margin: 0;
     width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
+    color: #000;
   }
   .main-clock {
     flex: 1 1 auto; display: flex;
     align-items: center; justify-content: center;
     direction: ltr !important;
-    font-size: 19vh; font-weight: 800;
+    font-size: 19vh; font-weight: 800; color: var(--text);
     font-family: 'Assistant', sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
     overflow: hidden; min-width: 0;
-    border-left: 1px solid #2a2a2a;
-    border-right: 1px solid #2a2a2a;
+    border-left: 1px solid #c8c0b4;
+    border-right: 1px solid #c8c0b4;
   }
   .c-hour { display: inline-block; text-align: right; min-width: 1ch; }
   .c-unit { display: inline-block; width: 2ch; text-align: center; }
-  .secs { font-size: 0.75em; opacity: 0.75; color: #fff; font-weight: 700; margin-left: 1px; }
+  .secs { font-size: 0.75em; opacity: 0.6; color: var(--text); font-weight: 700; margin-left: 1px; }
   .left-stack {
     flex: 0 0 26vw; height: 100%;
     display: flex; align-items: stretch; justify-content: stretch;
@@ -98,10 +101,10 @@
     text-align: center; padding: 4px 10px;
   }
   .teal-box { background: #004d40; color: #00bfa5; }
-  .gold-box  { color: var(--gold); background: #050505; }
+  .gold-box  { color: var(--gold-dark); background: var(--box); }
   #status-head { font-size: 6.2vh; line-height: 1.0; display: block; width: 100%; }
-  #status-sub  { font-size: 3.2vh; color: white; display: block; width: 100%; white-space: normal; line-height: 1.0; }
-  #status-kl   { font-size: 3.0vh; color: #aaffcc; display: block; width: 100%; line-height: 1.0; }
+  #status-sub  { font-size: 3.2vh; color: #000; display: block; width: 100%; white-space: normal; line-height: 1.0; }
+  #status-kl   { font-size: 3.0vh; color: #007a50; display: block; width: 100%; line-height: 1.0; }
 
   /* ── MAIN BODY ───────────────────────────────────────────────── */
   .main-body {
@@ -112,28 +115,24 @@
   .zemanim-col {
     width: 23vw; border: 2px solid var(--gold); border-radius: 10px;
     display: flex; flex-direction: column; padding: 2px;
-    background: #050505; overflow: hidden; flex-shrink: 0;
+    background: var(--box); overflow: hidden; flex-shrink: 0;
   }
   .z-row {
     display: flex; justify-content: space-between;
-    padding: 0px 8px; border-bottom: 1px solid #222;
+    padding: 0px 8px; border-bottom: 1px solid #d4cec6;
     align-items: center; flex: 1; overflow: hidden;
   }
-  .z-label { color: var(--gold); font-size: 3.6vh; }
-  .z-time  { color: white; font-size: 3.2vh; font-family: 'Assistant', sans-serif; font-weight: 800; direction: ltr; }
+  .z-label { color: var(--gold-dark); font-size: 3.6vh; }
+  .z-time  { color: var(--text); font-size: 3.2vh; font-family: 'Assistant', sans-serif; font-weight: 700; direction: ltr; }
   .active-zman { background: var(--gold) !important; }
   .active-zman .z-label, .active-zman .z-time { color: #000 !important; }
-  #row_special { background: #004d40 !important; }
-  #row_special .z-label { color: #00bfa5 !important; }
-  #row_special .z-time  { color: #ffffff !important; }
-  #r11 { display: none; }
 
   /* ── PORTRAIT IMAGE (8.5:11) ─────────────────────────────────── */
   .portrait-col {
     flex-shrink: 0;
     aspect-ratio: 8.5 / 11;
     border: 2px solid var(--gold); border-radius: 10px;
-    background: #000; overflow: hidden; position: relative;
+    background: var(--box2); overflow: hidden; position: relative;
   }
   .portrait-col img {
     width: 100%; height: 100%; object-fit: fill;
@@ -147,19 +146,20 @@
     gap: 8px; overflow: hidden; min-width: 0;
   }
   .data-box {
-    flex: 1; border: 2px solid var(--gold); border-radius: 10px;
-    background: #080808; display: flex; align-items: center;
+    flex: 0.8; border: 2px solid var(--gold); border-radius: 10px;
+    background: var(--box); display: flex; align-items: center;
     justify-content: center; text-align: center;
     padding: 8px 12px; overflow: hidden;
   }
   .data-box span {
-    font-weight: 800; font-size: 4.8vh; line-height: 1.1;
+    font-weight: 400; font-size: 4.8vh; line-height: 1.1;
     display: block; width: 100%; word-wrap: break-word;
+    color: var(--text);
   }
-  /* Rabbi's Corner box */
+  /* Daily Halachos box */
   .rabbi-box {
-    flex: 1; border: 2px solid var(--gold); border-radius: 10px;
-    background: #0d0a04; display: flex; flex-direction: column;
+    flex: 1.2; border: 2px solid var(--gold); border-radius: 10px;
+    background: var(--box2); display: flex; flex-direction: column;
     overflow: hidden;
   }
   .rabbi-header {
@@ -176,19 +176,21 @@
   }
   #RABBI {
     font-family: 'Frank Ruhl Libre', serif;
-    font-size: 4.0vh; line-height: 1.4; color: #f0ece4;
-    font-style: italic;
+    font-size: 4.0vh; line-height: 1.5; color: #1a1a1a;
+    font-style: normal; font-weight: 700;
     display: block; width: 100%; word-wrap: break-word;
     direction: rtl; text-align: center;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   .omer-box {
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
-    background: #001f1a; display: flex; flex-direction: column;
+    background: #d4eae6; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 4px 6px; text-align: center; overflow: hidden;
   }
   #O2 {
-    color: var(--gold); font-weight: 800; line-height: 1.0;
+    color: #1a4a3a; font-weight: 600; line-height: 1.1;
     width: 96%; display: block; margin: 0 auto;
     word-wrap: break-word; overflow: hidden;
   }
@@ -199,18 +201,17 @@
     display: flex; flex-direction: column;
     gap: 8px; overflow: hidden;
   }
-  /* Omer box in donation column — half size of donor boxes */
   .donation-col .omer-box {
     flex: 1; min-height: 0; overflow: hidden;
   }
   .donation-box {
     flex: 2; border: 2px solid var(--gold); border-radius: 10px;
-    background: #080500; display: flex; flex-direction: column;
+    background: var(--box); display: flex; flex-direction: column;
     overflow: hidden;
   }
   .donation-title {
     background: var(--gold); color: #000;
-    font-size: 3.2vh; font-weight: 800;
+    font-size: 3.2vh; font-weight: 700;
     text-align: center; padding: 4px 8px;
     border-radius: 8px 8px 0 0; flex-shrink: 0;
     letter-spacing: 0.03em;
@@ -220,7 +221,6 @@
     display: flex; flex-direction: column;
     padding: 0; gap: 0;
   }
-  /* Each donor entry gets equal share of the box height */
   .donor-entry {
     flex: 1;
     display: flex; flex-direction: column;
@@ -230,23 +230,21 @@
     border-bottom: 1px solid var(--gold);
   }
   .donor-entry:last-child { border-bottom: none; }
-  /* Dedication: gold */
   .donor-dedication {
-    color: #e8c87a; font-size: 5.0vh; line-height: 1.15;
+    color: var(--gold-dark); font-size: 5.0vh; line-height: 1.15;
     font-family: 'Suez One', 'Arial Hebrew', serif;
-    font-weight: 700; word-wrap: break-word; width: 100%;
+    font-weight: 400; word-wrap: break-word; width: 100%;
     padding-bottom: 3px;
-    border-bottom: 1px solid #5a4a20;
+    border-bottom: 1px solid #c8b48a;
   }
-  /* Donor name: lighter */
   .donor-name {
-    color: #ccc; font-size: 4.2vh; line-height: 1.15;
+    color: var(--dim); font-size: 4.2vh; line-height: 1.15;
     font-family: 'Suez One', 'Arial Hebrew', serif;
     font-weight: 400; word-wrap: break-word; width: 100%;
     padding-top: 3px;
   }
   .donation-empty {
-    color: #555; font-size: 2.6vh; text-align: center;
+    color: var(--dim); font-size: 2.6vh; text-align: center;
     padding: 10px; font-family: 'Assistant', sans-serif;
   }
 
@@ -280,7 +278,7 @@
     <div class="status-stack">
       <div id="DAY_LABEL">--</div>
       <div id="DATE_LABEL" style="color: var(--gold);">--</div>
-      <div id="PARSHA_LABEL" style="color: #ccc;">--</div>
+      <div id="PARSHA_LABEL">--</div>
     </div>
     <div class="main-clock" id="CLOCK">
       <span class="c-hour">0</span>:<span class="c-unit">00</span>:<span class="c-unit">00</span>
@@ -660,31 +658,15 @@ function updateUI() {
     // Candle lighting — Friday/Yom Tov only
     if (candleTime !== "" && h !== 0) {
         zRows.push({ id:'row_special', label:'הדלקת נרות', timeStr: candleTime,
-            secVal: getCandleSec(candleTime), style:'background:#004d40; color:#00bfa5;',
+            secVal: getCandleSec(candleTime),
             labelStyle:'color:#00bfa5;', timeStyle:'color:#ffffff;' });
     }
 
     // שקיעה
     zRows.push({ id:'r10', label:'שקיעת החמה', timeStr: dDate.z[9], secVal: getSec(dDate.z[9], true) });
 
-    // Friday: מנחה וקבלת שבת + זרע שמשון
-    if (isFriday && isMinchaFriSeason) {
-        zRows.push({ id:'r_fri_mincha', label:'מנחה וקבלת שבת', timeStr:'7:00:00',
-            secVal: 19*3600, style:'background:#1a1000;' });
-        zRows.push({ id:'r_zera', label:'זרע שמשון', timeStr:'6:40:00',
-            secVal: 18*3600 + 40*60, style:'background:#1a1000;' });
-    }
-
-    // Saturday: מנחה, שיעור מן הרב, פרקי אבות
-    if (isSaturday) {
-        let shabMinchaTime = shiftTime(dDate.z[9], -28);
-        let shiurTime      = shiftTime(dDate.z[9], -88);
-        zRows.push({ id:'r_shab_mincha', label:'מנחה',           timeStr: shabMinchaTime, secVal: getSec(dDate.z[9], true) - 28*60 });
-        zRows.push({ id:'r_shiur',       label:'שיעור מן הרב',   timeStr: shiurTime,      secVal: getSec(dDate.z[9], true) - 88*60 });
-        if (isPirkeySeason) {
-            zRows.push({ id:'r_avos', label:'פרקי אבות', timeStr:'7:00:00', secVal: 19*3600 });
-        }
-    }
+    // Friday: מנחה וקבלת שבת (Shimshon removed)
+    // Shabbat rows removed for cleaner display
 
     // מעריב — show all of Shabbos day (from Alos Sat through 1AM Sun)
     let alosToday  = getSec(dToday.z[0], false);
@@ -694,10 +676,9 @@ function updateUI() {
         zRows.push({ id:'r11', label:'מעריב', timeStr: maarTime, secVal: getSec(dDate.z[9], true) + 51*60 });
     }
 
-    // רבינו תם — no pin, sorts naturally (it's always the latest time)
+    // רבינו תם — no special styling, sorts naturally
     let rtTime = shiftTime(dDate.z[10], 2);
-    zRows.push({ id:'r12', label:'רבינו תם', timeStr: rtTime, secVal: getSec(dDate.z[10], true) + 120,
-        style:'background:#0a0800;' });
+    zRows.push({ id:'r12', label:'רבינו תם', timeStr: rtTime, secVal: getSec(dDate.z[10], true) + 120 });
 
     // Sort all by time
     zRows.sort((a, b) => a.secVal - b.secVal);
@@ -896,13 +877,17 @@ function applyData(d) {
     defaultSummerMsg = d.defaultMsg || "";
     tefilaOverride   = d.tefilaOverride || "";
 
-    // Single static image — try p5 first, fall back to first image in p1List
+    // Single static image — show only if not cleared
     if (d.p5) {
         EL['p1'].src = "https://drive.google.com/thumbnail?id=" + d.p5 + "&sz=w1200";
         EL['p1'].style.opacity = 1;
     } else if (d.p1List && d.p1List.length > 0) {
         EL['p1'].src = "https://drive.google.com/thumbnail?id=" + d.p1List[0] + "&sz=w1200";
         EL['p1'].style.opacity = 1;
+    } else {
+        // Cleared or no image — show blank box
+        EL['p1'].src = "";
+        EL['p1'].style.opacity = 0;
     }
 
     EL['ANN'].innerText = d.announcements || ""; fit(EL['ANN'], 4.8);
@@ -935,4 +920,3 @@ setInterval(updateUI, 1000); updateUI();
 </script>
 </body>
 </html>
-
