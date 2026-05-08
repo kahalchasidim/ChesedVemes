@@ -78,7 +78,7 @@
     flex: 1 1 auto; display: flex;
     align-items: center; justify-content: center;
     direction: ltr !important;
-    font-size: 19vh; font-weight: 800; color: var(--text);
+    font-size: 19vh; font-weight: 800; color: #000000;
     font-family: 'Assistant', sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
@@ -658,15 +658,30 @@ function updateUI() {
     // Candle lighting — Friday/Yom Tov only
     if (candleTime !== "" && h !== 0) {
         zRows.push({ id:'row_special', label:'הדלקת נרות', timeStr: candleTime,
-            secVal: getCandleSec(candleTime),
-            labelStyle:'color:#00bfa5;', timeStyle:'color:#ffffff;' });
+            secVal: getCandleSec(candleTime) });
     }
 
     // שקיעה
     zRows.push({ id:'r10', label:'שקיעת החמה', timeStr: dDate.z[9], secVal: getSec(dDate.z[9], true) });
 
-    // Friday: מנחה וקבלת שבת (Shimshon removed)
-    // Shabbat rows removed for cleaner display
+    // Friday: מנחה וקבלת שבת + זרע שמשון
+    if (isFriday && isMinchaFriSeason) {
+        zRows.push({ id:'r_fri_mincha', label:'מנחה וקבלת שבת', timeStr:'7:00:00',
+            secVal: 19*3600 });
+        zRows.push({ id:'r_zera', label:'זרע שמשון', timeStr:'6:40:00',
+            secVal: 18*3600 + 40*60 });
+    }
+
+    // Saturday: מנחה, שיעור מן הרב, פרקי אבות
+    if (isSaturday) {
+        let shabMinchaTime = shiftTime(dDate.z[9], -28);
+        let shiurTime      = shiftTime(dDate.z[9], -88);
+        zRows.push({ id:'r_shab_mincha', label:'מנחה',           timeStr: shabMinchaTime, secVal: getSec(dDate.z[9], true) - 28*60 });
+        zRows.push({ id:'r_shiur',       label:'שיעור מן הרב',   timeStr: shiurTime,      secVal: getSec(dDate.z[9], true) - 88*60 });
+        if (isPirkeySeason) {
+            zRows.push({ id:'r_avos', label:'פרקי אבות', timeStr:'7:00:00', secVal: 19*3600 });
+        }
+    }
 
     // מעריב — show all of Shabbos day (from Alos Sat through 1AM Sun)
     let alosToday  = getSec(dToday.z[0], false);
