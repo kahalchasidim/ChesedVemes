@@ -910,9 +910,9 @@ function updateUI() {
 
 // ── DATA LOAD ─────────────────────────────────────────────────────
 function loadData() {
-    // Load async in background with SHORT timeout - never blocks
+    // Don't block - load async in background with SHORT timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout ONLY
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout MAX
     
     fetch(SCRIPT_URL + "?cb=" + new Date().getTime(), { signal: controller.signal })
     .then(r => r.json())
@@ -925,7 +925,7 @@ function loadData() {
     })
     .catch(err => {
         clearTimeout(timeoutId);
-        // Silent fail - board uses cache
+        // Silently fail - board already loaded from cache
     });
 }
 
