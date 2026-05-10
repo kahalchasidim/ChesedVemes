@@ -912,7 +912,7 @@ function updateUI() {
 function loadData() {
     // Don't block - load async in background with SHORT timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout MAX
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
     fetch(SCRIPT_URL + "?cb=" + new Date().getTime(), { signal: controller.signal })
     .then(r => r.json())
