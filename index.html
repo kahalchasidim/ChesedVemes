@@ -762,14 +762,12 @@ function updateUI() {
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
-    // Omer box — Molad → Omer → tefilaOverride → summer msg (no Bechina)
+    // Omer box — Molad → Omer → summer msg (no tefilaOverride, no Bechina)
     if (isMoledTime && moledText !== "") {
         EL['O2'].innerText = moledText; fitInBox(EL['O2'], EL['OMER'], 2.8);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
         fitInBox(EL['O2'], EL['OMER'], 3.2);
-    } else if (tefilaOverride) {
-        EL['O2'].innerText = tefilaOverride; fitInBox(EL['O2'], EL['OMER'], 3.0);
     } else {
         EL['O2'].innerText = summerMsg; fitInBox(EL['O2'], EL['OMER'], 3.2);
     }
