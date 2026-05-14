@@ -284,11 +284,74 @@
   .btn-confirm:hover { background: #a02d1f; }
   .btn-cancel { background: var(--box); color: var(--text); border: 2px solid var(--gold); }
   .btn-cancel:hover { background: var(--gold); }
+
+  /* ── SHAVUOT FLOWER BORDER ────────────────────────────────────────── */
+  #flowerBorderFrame {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: -1;
+    background-image: url('https://raw.githubusercontent.com/BerkoDesigns/ChesedVemes/main/—Pngtree—floral%20border%20watercolor%20rose%20flowers_8816915.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: none;
+  }
+  
+  body.shavuot-mode {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  body.shavuot-mode #flowerBorderFrame {
+    display: block;
+  }
+  
+  body.shavuot-mode .master-frame {
+    height: calc(100vh - 24px);
+    width: calc(100vw - 24px);
+    margin: 12px;
+    border: none;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* ── SHAVUOT MODE: BLACK TEXT FOR TOP ROW ──────────────────────── */
+  body.shavuot-mode .branding-shul {
+    color: #000000 !important;
+    font-weight: bold;
+  }
+  
+  body.shavuot-mode #ENG_SIDE {
+    color: #000000 !important;
+    font-weight: bold;
+  }
+  
+  body.shavuot-mode #ENG_DATE {
+    color: #000000 !important;
+  }
+  
+  body.shavuot-mode #WEATHER {
+    color: #000000 !important;
+  }
+  
+  body.shavuot-mode #BSD {
+    color: #000000 !important;
+    font-weight: bold;
+  }
+
 </style>
 </head>
 <body>
 
 <div id="SLEEP_OVERLAY"><div id="SLEEP_CLOCK">00:00:00</div></div>
+
+<!-- Shavuot Flower Border Frame -->
+<div id="flowerBorderFrame"></div>
 
 <!-- Delete Confirmation Modal -->
 <div id="confirmModal">
@@ -634,6 +697,13 @@ function updateUI() {
 
     let isHolidayStayAwake = holidayText.includes("שבועות");
 
+    // Show flower border for Shavuot
+    if (isHolidayStayAwake) {
+        document.body.classList.add('shavuot-mode');
+    } else {
+        document.body.classList.remove('shavuot-mode');
+    }
+
     if (!isHolidayStayAwake && h >= 1 && h < 5) {
         EL['SLEEP_OVERLAY'].style.display = 'block';
         EL['SLEEP_CLOCK'].innerText = (h%12||12) + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
@@ -648,7 +718,7 @@ function updateUI() {
     let dIso = (cSec < THREE_AM) ? getIso(new Date(now.getTime() - 86400000)) : getIso(now);
     let dDate = schedule[dIso] || dToday;
 
-    let rtSecs = getSec(dToday.z[10], true) + 120;
+    let rtSecs = getSec(dToday.z[10], true);
     let oIso   = (cSec >= rtSecs - 1500) ? getIso(new Date(now.getTime() + 86400000)) : getIso(now);
     let dOmer  = schedule[oIso] || dToday;
 
@@ -728,8 +798,8 @@ function updateUI() {
     }
 
     // רבינו תם — no special styling, sorts naturally
-    let rtTime = shiftTime(dDate.z[10], 2);
-    zRows.push({ id:'r12', label:'רבינו תם', timeStr: rtTime, secVal: getSec(dDate.z[10], true) + 120 });
+    let rtTime = dDate.z[10];
+    zRows.push({ id:'r12', label:'רבינו תם', timeStr: rtTime, secVal: getSec(dDate.z[10], true) });
 
     // Sort all by time
     zRows.sort((a, b) => a.secVal - b.secVal);
@@ -762,8 +832,12 @@ function updateUI() {
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
-    // Omer box — Molad → Omer → summer msg (no tefilaOverride, no Bechina)
-    if (isMoledTime && moledText !== "") {
+    // Omer box — Shavuot first, then Molad → Omer → summer msg
+    if (isHolidayStayAwake) {
+        // SHAVUOT: Special message with flowers
+        EL['O2'].innerText = "🌸 זמן מתן תורתינו 🌸\nא פרייליכען יום טוב שבועות 🌺";
+        fitInBox(EL['O2'], EL['OMER'], 3.5);
+    } else if (isMoledTime && moledText !== "") {
         EL['O2'].innerText = moledText; fitInBox(EL['O2'], EL['OMER'], 2.8);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
@@ -876,19 +950,42 @@ function updateUI() {
         } else {
             head = "מוצאי שבת"; sub = "אתה חוננתנו";
         }
-    } else if (isYomTov && isPastRT) {
-        // Yom Tov just ended after RT → מוצאי יום טוב
-        head = "מוצאי יום טוב"; sub = hText || ""; cls = "teal-box";
+    } else if (isYomTov) {
+        // Yom Tov day (Col AA = Y)
+        // BUT: if next day is NOT Yom Tov (Col AA ≠ Y) AND we're past RT, holiday has ended
+        let dNextDay = schedule[getIso(new Date(now.getTime() + 86400000))];
+        let nextDayIsYomTov = dNextDay && (dNextDay.yomtov === "Y");
+        
+        if (!nextDayIsYomTov && isPastRT) {
+            // Holiday ended — show Motzei Yom Tov
+            head = "מוצאי יום טוב"; sub = "אתה חוננתנו"; cls = "gold-box";
+        } else {
+            // Still in holiday — show the text
+            head = hText || "יום טוב"; sub = tR; cls = "teal-box";
+        }
     } else if (hText !== "" && !isPastRT) {
-        // Weekday special day (Rosh Chodesh, Lag Baomer etc.) — only before RT
+        // Col D text — only before RT
         head = hText; sub = tR; cls = "teal-box";
     } else if (tR !== "" && !isPastRT) {
         // Tachanun override — only before RT
         head = "אין אומרים תחנון"; sub = tR; cls = "teal-box";
     } else {
-        // Default — after RT on special days, or regular weekday
-        head = isTalUmatar ? "ותן טל ומטר" : "ותן ברכה";
-        sub  = isGeshem    ? "מוריד הגשם"  : "";
+        // Check if yesterday was Yom Tov (for Motzei Yom Tov after midnight)
+        let dYesterday = schedule[getIso(new Date(now.getTime() - 86400000))];
+        let yesterdayWasYomTov = dYesterday && (dYesterday.yomtov === "Y");
+        let alSec = getSec(dToday.z[0], false);
+        
+        if (yesterdayWasYomTov && cSec < alSec) {
+            // After midnight but before Alos — still in Motzei Yom Tov
+            head = "מוצאי יום טוב"; sub = "אתה חוננתנו"; cls = "gold-box";
+        } else if (dayW === 5 && !isYomTov && !isPastRT) {
+            // RULE 13: Friday (Erev Shabbat) — אין אומרים תחנון / ערב שבת קודש
+            head = "אין אומרים תחנון"; sub = "ערב שבת קודש"; cls = "teal-box";
+        } else {
+            // Default — מוריד הטל / ותן ברכה
+            head = isTalUmatar ? "ותן טל ומטר" : "ותן ברכה";
+            sub  = isGeshem    ? "מוריד הגשם"  : "";
+        }
     }
 
     let showKL = getKiddushLevana(now, dDate.heb || "", isShab, hText, dayW);
