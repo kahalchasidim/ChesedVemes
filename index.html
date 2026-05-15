@@ -827,8 +827,8 @@ function updateUI() {
         currentlyHighlightedId = nextId;
     }
 
-    let moledText   = dDate.moled || "";
-    let isMoledTime = (cSec >= 28800 && cSec <= 43200); // 8:00 AM – 12:00 PM
+    let moledText   = dDate.moledDisplay || "";  // Column Y - Molad Display
+    let isMoledTime = (cSec >= 32400 && cSec <= 45000); // 9:00 AM – 12:30 PM
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
@@ -837,7 +837,8 @@ function updateUI() {
         // SHAVUOT: Special message with flowers
         EL['O2'].innerText = "🌸 זמן מתן תורתינו 🌸\nא פרייליכען יום טוב שבועות 🌺";
         fitInBox(EL['O2'], EL['OMER'], 3.5);
-    } else if (isMoledTime && moledText !== "") {
+    } else if (isMoledTime && moledText !== "" && dayW === 6) {
+        // MOLAD: Display only on Saturday (dayW=6) between 9am-12:30pm
         EL['O2'].innerText = moledText; fitInBox(EL['O2'], EL['OMER'], 2.8);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
