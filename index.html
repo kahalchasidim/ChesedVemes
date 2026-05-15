@@ -854,11 +854,9 @@ function updateUI() {
             fitInBox(EL['RABBI'], rabbiBody, 4.0);
             
             // Update header based on content
-            // Check if this is Dvar Torah (Shabbat) or Daily Halachos (weekday)
-            // Dvar Torah usually contains phrases like "Parshas" or "פרשת" or is longer content
-            const isDvarTorah = tefilaOverride.includes("Parshas") || 
-                               tefilaOverride.includes("פרשת") || 
-                               tefilaOverride.includes("Hashem");
+            // Dvar Torah (Shabbat) contains "פרשת"
+            // Daily Halachos (weekday) does NOT contain "פרשת"
+            const isDvarTorah = tefilaOverride.includes("פרשת");
             
             const headerEl = document.getElementById('RABBI-HEADER');
             if (headerEl) {
