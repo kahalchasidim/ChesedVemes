@@ -70,7 +70,7 @@
     color: var(--gold-dark);
   }
   #PARSHA_LABEL {
-    font-size: 3.8vh; line-height: 1.0; padding: 0; margin: 0;
+    font-size: 4.8vh; line-height: 1.0; padding: 0; margin: 0;
     width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
     color: #000;
   }
@@ -839,7 +839,19 @@ function updateUI() {
         fitInBox(EL['O2'], EL['OMER'], 3.5);
     } else if (isMoledTime && moledText !== "" && dayW === 6) {
         // MOLAD: Display only on Saturday (dayW=6) between 9am-12:30pm
-        EL['O2'].innerText = moledText; fitInBox(EL['O2'], EL['OMER'], 2.8);
+        // Format: Split "מולד חודש [month]:" from the rest
+        let moledFormatted = moledText;
+        if (moledText.includes("מולד חודש")) {
+            // Find the colon after "מולד חודש [month]:"
+            let colonIndex = moledText.indexOf(":");
+            if (colonIndex !== -1) {
+                // Split: header (up to and including colon) on first line, rest on next line
+                let header = moledText.substring(0, colonIndex + 1);
+                let details = moledText.substring(colonIndex + 1).trim();
+                moledFormatted = header + "\n" + details;
+            }
+        }
+        EL['O2'].innerText = moledFormatted; fitInBox(EL['O2'], EL['OMER'], 2.8);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
         fitInBox(EL['O2'], EL['OMER'], 3.2);
