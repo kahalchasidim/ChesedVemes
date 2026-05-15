@@ -691,7 +691,7 @@ function updateUI() {
     let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
     let cSec = (h*3600) + (m*60) + s;
     let dayW = now.getDay();
-
+    
     let dToday = schedule[getIso(now)]; if (!dToday) return;
     let holidayText = dToday.holidayText || "";
 
@@ -828,7 +828,7 @@ function updateUI() {
     }
 
     let moledText   = dDate.moledDisplay || "";  // Column Y - Molad Display
-    let isMoledTime = (cSec >= 32400 && cSec <= 45000); // 8:00 AM – 12:30 PM
+    let isMoledTime = (cSec >= 32400 && cSec <= 45000); // 9:00 AM – 12:30 PM
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
@@ -966,10 +966,11 @@ function updateUI() {
             let rcDays = [];
             let rcText = "";
             for (let ahead = 1; ahead <= 8; ahead++) {
-                let aheadIso = getIso(new Date(now.getTime() + ahead * 86400000));
+                let aheadDate = new Date(now.getTime() + ahead * 86400000);
+                let aheadIso = getIso(aheadDate);
                 let aheadDay = schedule[aheadIso];
                 if (aheadDay && (aheadDay.holidayText || "").includes("ראש חודש")) {
-                    let dayName = DAY_MAP[aheadDay.day] || aheadDay.day || "";
+                    let dayName = DAY_NAMES[aheadDate.getDay()];  // Use actual day of week, not schedule
                     if (dayName && !rcDays.includes(dayName)) rcDays.push(dayName);
                     if (!rcText) rcText = aheadDay.holidayText; // Get the holiday text
                 }
