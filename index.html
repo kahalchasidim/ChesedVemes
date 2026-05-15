@@ -70,7 +70,7 @@
     color: var(--gold-dark);
   }
   #PARSHA_LABEL {
-    font-size: 4.8vh; line-height: 1.0; padding: 0; margin: 0;
+    font-size: 5.5vh; line-height: 1.0; padding: 0; margin: 0;
     width: 100%; text-align: center; overflow: hidden; white-space: nowrap;
     color: #000;
   }
@@ -187,12 +187,12 @@
     flex: 1; border: 2px solid var(--gold); border-radius: 10px;
     background: #d4eae6; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 4px 6px; text-align: center; overflow: hidden;
+    padding: 4px 6px; text-align: center; overflow: visible;
   }
   #O2 {
-    color: #1a4a3a; font-weight: 600; line-height: 1.1;
+    color: #1a4a3a; font-weight: 600; line-height: 1.3;
     width: 96%; display: block; margin: 0 auto;
-    word-wrap: break-word; overflow: hidden;
+    word-wrap: break-word; overflow: visible;
   }
 
   /* ── DONATION COLUMN — 22vw ──────────────────────────────────── */
@@ -568,6 +568,27 @@ function fitInBox(el, container, vhStart) {
     }
 }
 
+// fitExpand: grow text UP to fill available space in container
+function fitExpand(el, vhStart, vhMax) {
+    if (!el) return;
+    let container = el.parentElement;
+    if (!container) return;
+    let vh = vhStart;
+    el.style.fontSize = vh + "vh";
+    
+    // Grow UP until text fills the box or hits vhMax
+    while (el.scrollHeight < container.clientHeight && vh < vhMax) {
+        vh += 0.15;
+        el.style.fontSize = vh + "vh";
+    }
+    
+    // Shrink back slightly if overflowed
+    while (el.scrollHeight > container.clientHeight && vh > vhStart) {
+        vh -= 0.15;
+        el.style.fontSize = vh + "vh";
+    }
+}
+
 // ── HEBREW MONTH EXTRACTOR ────────────────────────────────────────
 /**
  * Extracts month + year from Hebrew date string.
@@ -736,7 +757,7 @@ function updateUI() {
         EL['DATE_LABEL'].innerText   = dDate.heb;
         EL['PARSHA_LABEL'].innerText = dDate.parsha ? "פרשת " + dDate.parsha : "";
         fit(EL['DATE_LABEL'],   5.0);
-        fit(EL['PARSHA_LABEL'], 3.8);
+        fit(EL['PARSHA_LABEL'], 5.5);
     }
 
     // ── DYNAMIC SORTED ZMANIM ─────────────────────────────────────
@@ -836,7 +857,7 @@ function updateUI() {
     if (isHolidayStayAwake) {
         // SHAVUOT: Special message with flowers
         EL['O2'].innerText = "🌸 זמן מתן תורתינו 🌸\nא פרייליכען יום טוב שבועות 🌺";
-        fitInBox(EL['O2'], EL['OMER'], 3.5);
+        fitExpand(EL['O2'], 3.5, 8.0);  // Expand to fill box
     } else if (isMoledTime && moledText !== "" && dayW === 6) {
         // MOLAD: Display only on Saturday (dayW=6) between 9am-12:30pm
         // Format: Split "מולד חודש [month]:" from the rest
@@ -851,12 +872,12 @@ function updateUI() {
                 moledFormatted = header + "\n" + details;
             }
         }
-        EL['O2'].innerText = moledFormatted; fitInBox(EL['O2'], EL['OMER'], 2.8);
+        EL['O2'].innerText = moledFormatted; fitExpand(EL['O2'], 2.8, 8.0);  // Expand to fill box
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
-        fitInBox(EL['O2'], EL['OMER'], 3.2);
+        fitExpand(EL['O2'], 3.2, 8.0);  // Expand to fill box
     } else {
-        EL['O2'].innerText = summerMsg; fitInBox(EL['O2'], EL['OMER'], 3.2);
+        EL['O2'].innerText = summerMsg; fitExpand(EL['O2'], 3.2, 8.0);  // Expand to fill box
     }
 
     // Rabbi's Corner — shows tefilaOverride, blank when empty
