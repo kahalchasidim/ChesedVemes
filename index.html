@@ -492,6 +492,16 @@ const DAY_MAP = {
   "Thu":"יום חמישי","Fri":"ערב שבת קודש","Sha":"שבת קודש","Sat":"שבת קודש"
 };
 
+const DAY_NAMES = {
+  0: "יום ראשון",
+  1: "יום שני",
+  2: "יום שלישי",
+  3: "יום רביעי",
+  4: "יום חמישי",
+  5: "יום שישי",
+  6: "שבת"
+};
+
 // ── HELPERS ───────────────────────────────────────────────────────
 function shiftTime(t, o) {
     if (!t || t.includes("--")) return "--:--:--";
@@ -850,6 +860,32 @@ function updateUI() {
 
     let moledText   = dDate.moledDisplay || "";  // Column Y - Molad Display
     let isMoledTime = (cSec >= 32400 && cSec <= 45000); // 9:00 AM – 12:30 PM
+    let isShabbat   = (dayW === 6);
+    let isMoledDisplay = isMoledTime && isShabbat && moledText !== "";
+    
+    // ROSH CHODESH: Look ahead for Shabbat Mevarchim
+    let rochDayNames = "";
+    if (isShabbat && holidayText && holidayText.includes("מברכים")) {
+        let rochDays = [];
+        for (let i = 1; i <= 8; i++) {
+            let futureDate = new Date(now.getTime() + (i * 86400000));
+            let futureIso = getIso(futureDate);
+            let futureData = schedule[futureIso];
+            if (futureData && futureData.holidayText && futureData.holidayText.includes("ראש חודש")) {
+                rochDays.push(DAY_NAMES[futureDate.getDay()]);
+            }
+        }
+        if (rochDays.length === 1) {
+            rochDayNames = rochDays[0];
+        } else if (rochDays.length === 2) {
+            rochDayNames = rochDays[0] + " ו" + rochDays[1];
+        } else if (rochDays.length > 2) {
+            rochDayNames = rochDays.slice(0, -1).join(", ") + " ו" + rochDays[rochDays.length - 1];
+        }
+        isMoledDisplay = true;
+        moledText = rochDayNames;
+    }
+    
     let omerKey     = dOmer.omerNum ? String(dOmer.omerNum).trim() : null;
     let summerMsg   = dOmer.clmF || defaultSummerMsg;
 
@@ -858,21 +894,10 @@ function updateUI() {
         // SHAVUOT: Special message with flowers
         EL['O2'].innerText = "🌸 זמן מתן תורתינו 🌸\nא פרייליכען יום טוב שבועות 🌺";
         fitExpand(EL['O2'], 3.5, 8.0);  // Expand to fill box
-    } else if (isMoledTime && moledText !== "" && dayW === 6) {
-        // MOLAD: Display only on Saturday (dayW=6) between 9am-12:30pm
-        // Format: Split "מולד חודש [month]:" from the rest
-        let moledFormatted = moledText;
-        if (moledText.includes("מולד חודש")) {
-            // Find the colon after "מולד חודש [month]:"
-            let colonIndex = moledText.indexOf(":");
-            if (colonIndex !== -1) {
-                // Split: header (up to and including colon) on first line, rest on next line
-                let header = moledText.substring(0, colonIndex + 1);
-                let details = moledText.substring(colonIndex + 1).trim();
-                moledFormatted = header + "\n" + details;
-            }
-        }
-        EL['O2'].innerText = moledFormatted; fitExpand(EL['O2'], 2.8, 8.0);  // Expand to fill box
+    } else if (isMoledDisplay) {
+        $('O2').innerText = moledText; 
+        $('O_BECHINA').style.display = 'none'; 
+        fitExpand($('O2'), 4.2, 8.0);
     } else if (omerKey) {
         EL['O2'].innerText = "היום " + (OMER_STRINGS[omerKey] || omerKey + " יום") + " בעומר";
         fitExpand(EL['O2'], 3.2, 8.0);  // Expand to fill box
@@ -1184,3 +1209,4 @@ setInterval(updateUI, 1000); updateUI();
 </script>
 </body>
 </html>
+
